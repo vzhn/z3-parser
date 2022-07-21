@@ -33,4 +33,5 @@ class CellTest {
  2. Part of rule, for example V
  3. position in the part of rule
  4. terminal
+ 5. absolute index
  */
