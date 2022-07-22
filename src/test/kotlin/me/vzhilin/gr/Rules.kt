@@ -1,5 +1,4 @@
 package me.vzhilin.gr
-
 sealed class Rule {
     abstract val name: String
 }
