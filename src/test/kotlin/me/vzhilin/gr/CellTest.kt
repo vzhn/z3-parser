@@ -39,16 +39,31 @@ class CellTest {
     }
 }
 
-data class Cell(
+// cell
+// behaves differently for product and sum rules
+data class ProductCell(
     // row number
     val i: Int,
 
     // rule number
-    val rn: Int,
+    val ruleNumber: Int,
 
     // position in rule
-    val rp: Int
+    val pos: Int,
+
+    // sub-rule number
+    val subRuleNumber: Int,
+
+    // position in sub-rule *
+    val posInSubRule: Int
 )
+
+/**
+ * Laws of cell
+ *
+ *
+ *
+ */
 
 /**
 
