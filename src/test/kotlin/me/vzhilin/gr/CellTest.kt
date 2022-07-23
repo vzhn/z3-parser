@@ -1,26 +1,31 @@
 package me.vzhilin.gr
 
+import kotlin.math.PI
 import kotlin.test.Test
 
 class CellTest {
-    val SPACE = Term("SPACE", " ")
-    val DOT = Term("DOT", ".")
-    val X = Term("X", "x")
-    val Y = Term("Y", "y")
-    val Z = Term("Z", "z")
-    val LAMBDA = Term("LAMBDA", "λ")
-    val NAMES = Sum("NAMES", "X", "Y", "Z")
+    /* terminals */
+    private val A = Term("A", "a")
+    private val B = Term("B", "b")
+    private val C = Term("C", "c")
+    private val D = Term("D", "d")
+    private val DOT = Term("DOT", ".")
+    private val LAMBDA = Term("LAMBDA", "λ")
 
-    val T = Sum("T", "V", "APP", "ABST")
-    val V = Prod("V", "NAMES")
-    val APP = Prod("APP", "T", "SPACE", "T")
-    val ABST = Prod("ABST", "LAMBDA", "V", "DOT", "T")
+    /* T = V | APP | ABST */
+    private val T = Sum("T", "V", "APP", "ABST")
 
-    val rulesList = listOf(
-        SPACE, DOT, X, Y, Z, LAMBDA, DOT, NAMES, T, V, APP, ABST
-    )
-    private val rulesMap = rulesList.associateBy { it.name }
-    private val rulesByType = rulesList.groupBy(::type)
+    /* V = A | B | C | D */
+    private val V = Sum("V", "A", "B", "C", "D")
+
+    /* APP = T T */
+    private val APP = Prod("APP", "T", "T")
+
+    /* ABST = λV.T */
+    private val ABST = Prod("ABST", "LAMBDA", "V", "DOT", "T")
+
+    private val allRules = listOf(A, B, C, D, DOT, LAMBDA, T, V, APP, ABST)
+    private val nameToRule = allRules.associateBy { it.name }
 
     private fun type(it: Rule) = when (it) {
         is Term -> 1
@@ -30,143 +35,147 @@ class CellTest {
     }
 
     private fun t(r: String): Int {
-        return type(rulesMap[r]!!)
-    }
-
-    fun ix(n: String): Int {
-        val r = rulesMap[n]!!
-        val t = type(r)
-        return rulesByType[t]!!.indexOf(r)
+        return type(nameToRule[r]!!)
     }
 
     fun ix(r: Rule): Int {
-        return rulesList.indexOf(r)
+        return allRules.indexOf(r)
     }
 
     @Test
     fun test() {
-        val input = "λx.x λy.y"
-        val row0 = listOf(
-            /*  'λ'   */ Cell(LAMBDA, 0, 0, 0),
-            /*  'x'   */ Cell(X, 0, 0, 0),
-            /*  '.'   */ Cell(DOT, 0, 0, 0),
-            /*  'y'   */ Cell(Y, 0, 0, 0),
-            /*  ' '   */ Cell(SPACE, 0, 0, 0),
-            /*  'λ'   */ Cell(LAMBDA, 0, 0, 0),
-            /*  'x'   */ Cell(X, 0, 0, 0),
-            /*  '.'   */ Cell(DOT, 0, 0, 0),
-            /*  'y'   */ Cell(Y, 0, 0, 0),
-        )
-
-        val row1 = listOf(
-            /*  'λ'  */  Cell(LAMBDA, 0, 0, 0),
-            /*   V   */  Cell(V, 0, 0, 0),
-            /*  '.'  */  Cell(DOT, 0, 0, 0),
-            /*   V   */  Cell(V, 0, 0, 0),
-            /*  ' '   */ Cell(SPACE, 0, 0, 0),
-            /*  'λ'  */  Cell(LAMBDA, 0, 0, 0),
-            /*   V   */  Cell(V, 0, 0, 0),
-            /*  '.'  */  Cell(DOT, 0, 0, 0),
-            /*   V   */  Cell(V, 0, 0, 0),
-        )
-
-        val row2 = listOf(
-            /*  'λ'  */  Cell(LAMBDA, 0, 0, 0),
-            /*   V   */  Cell(T, 0, 0, 0),
-            /*  '.'  */  Cell(DOT, 0, 0, 0),
-            /*   T   */  Cell(V, 0, 0, 0),
-            /*  ' '   */ Cell(SPACE, 0, 0, 0),
-            /*  'λ'  */  Cell(LAMBDA, 0, 0, 0),
-            /*   V   */  Cell(V, 0, 0, 0),
-            /*  '.'  */  Cell(DOT, 0, 0, 0),
-            /*   T   */  Cell(T, 0, 0, 0),
-        )
-
-        val row3 = listOf(
-            /*  ABST  */  Cell(ABST, 0, 0, 0),
-            /*  ABST  */  Cell(ABST, 1, 1, 0),
-            /*  ABST  */  Cell(ABST, 2, 2, 0),
-            /*  ABST  */  Cell(ABST, 3, 3, 0),
-            /*  ' '   */  Cell(SPACE, 0, 0, 0),
-            /*  ABST  */  Cell(ABST, 0, 0, 0),
-            /*  ABST  */  Cell(ABST, 1, 1, 0),
-            /*  ABST  */  Cell(ABST, 2, 2, 0),
-            /*  ABST  */  Cell(ABST, 3, 3, 0),
-        )
-
-        val row4 = listOf(
-            /*  T  */  Cell(T, 0, 0, 0),
-            /*  T  */  Cell(T, 1, 0, 1),
-            /*  T  */  Cell(T, 2, 0, 2),
-            /*  T  */  Cell(T, 3, 0, 3),
-            /*  T  */  Cell(T, 4, 1, 0),
-            /*  T  */  Cell(T, 5, 2, 0),
-            /*  T  */  Cell(T, 6, 2, 1),
-            /*  T  */  Cell(T, 7, 2, 2),
-            /*  T  */  Cell(T, 8, 2, 3),
-        )
-        val matrix = listOf(row0, row1, row2, row3, row4)
-        checkMatrix(input, matrix)
+        val input = "λx.abcdd"
+        prepareRules(input)
     }
 
-    fun checkMatrix(input: String, matrix: List<List<Cell>>) {
-        matrix.forEachIndexed { columnIndex, cells ->
-            cells.forEachIndexed { rowIndex, cell ->
-                val rule = rulesList[cell.ruleNumber]
-                val isFirstRow = rowIndex == 0
-                val isLastRow = rowIndex == cells.lastIndex
+    fun prepareRules(input: String) {
+        val columnsNumber = input.length
+        val rowsNumber = 7
+        fun field(rn: Int, cn: Int) = "${rn}_${cn}"
 
-                val upperCell by lazy { matrix[columnIndex][rowIndex - 1] }
-                val leftCell by lazy { matrix[columnIndex - 1][rowIndex] }
-                var cellOk = true
-                if (columnIndex == 0) {
-                    val char = input[rowIndex]
-                    cellOk = cellOk && rule is Term
-                        && cell.pos >= 0
-                        && cell.pos <= rule.value.lastIndex
-                        && rule.value[cell.pos] == char
-                } else {
-                    when (rule) {
-                        is Prod -> {
-                            if (isFirstRow) {
-                                cellOk = cellOk && cell.subRuleNumber == 0
-                            } else {
-                                cellOk = cellOk && (
-                                    cell.subRuleNumber == upperCell.subRuleNumber || cell.subRuleNumber == upperCell.subRuleNumber + 1
-                                )
-                            }
-                            if (isLastRow) {
-                                cellOk = cellOk && cell.subRuleNumber == rule.args.lastIndex
-                            }
+        fun nonMonotonicallyIncreasing(rn: Int, field: String) {
+            (0 until columnsNumber).forEachAdjacentPair { left, right ->
+                val leftGroupId = "${field}_${field(rn, left)}"
+                val rightGroupId = "${field}_${field(rn, right)}"
+                println("$rightGroupId == $leftGroupId || $rightGroupId == $leftGroupId + 1")
+            }
+        }
+        fun groupIdConstraints() {
+            for (rn in 0..rowsNumber) {
+                println("groupId_${field(rn, 0)} == 0")
 
-                            cellOk = cellOk && cell.subRuleNumber == leftCell.ruleNumber
+                nonMonotonicallyIncreasing(rn, "groupId")
+            }
+        }
+        fun posConstraints() {
+            for (rn in 0..rowsNumber) {
+                // in first column pos always equals zero
+                println("pos_${field(rn, 0)} == 0")
+
+                // in following columns pos equals zero when new group is started
+                // otherwise pos equals prev pos + 1
+                (1 until columnsNumber).forEachAdjacentPair { left, right ->
+                    val leftGroupId = "groupId_${field(rn, left)}"
+                    val rightGroupId = "groupId_${field(rn, right)}"
+                    val leftPos = "pos_${field(rn, left)}"
+                    val rightPos = "pos_${field(rn, right)}"
+
+                    println("$leftGroupId == $rightGroupId => $rightPos = $leftPos + 1")
+                    println("$leftGroupId != $rightGroupId => $rightPos = 0")
+                }
+            }
+        }
+        fun productConstraints() {
+            for (rn in 0..rowsNumber) {
+                (0 until columnsNumber).forEach { cn ->
+                    val name = field(rn, cn)
+                    println("isProduct_$name == true && pos_$name == 0 => child_$name == 0")
+                }
+
+                (0 until columnsNumber).forEachAdjacentPair { left, right ->
+                    val leftName = field(rn, left)
+                    val rightName = field(rn, right)
+                    val bottomLeft = field(rn - 1, left)
+                    val bottomRight = field(rn - 1, right)
+                    val leftChild = "child_$leftName"
+                    val rightChild = "child_$rightName"
+                    val leftGroupId = "groupId_$leftName"
+                    val rightGroupId = "groupId_$rightName"
+                    val bottomLeftGroupId = "groupId_$bottomLeft"
+                    val bottomRightGroupId = "groupId_$bottomRight"
+
+                    println("isProduct_$leftName == true && $leftGroupId == $rightGroupId => $rightChild == $leftChild || $rightChild == $leftChild + 1")
+                    println("isProduct_$leftName == true && $leftGroupId != $rightGroupId => $leftChild = lastChild_$leftName")
+                    println("isProduct_$leftName == true && $leftGroupId == $rightGroupId && $leftChild == $rightChild => $bottomLeftGroupId == $bottomRightGroupId")
+                    println("isProduct_$leftName == true && $leftGroupId == $rightGroupId && $leftChild + 1 == $rightChild => $bottomLeftGroupId + 1 == $bottomRightGroupId")
+                }
+
+                val last = field(rn, columnsNumber - 1)
+                println("isProduct_$last == true => child_$last = lastChild_$last")
+            }
+
+            allRules.forEachIndexed { index, rule ->
+                if (rule is Prod) {
+                    for (rn in 0..rowsNumber) {
+                        (0 until columnsNumber).forEach { cn ->
+                            val name = field(rn, cn)
+                            println("ruleId_$name == $index => isProduct_$name == true")
+                            println("ruleId_$name == $index => lastChild_$name == ${rule.args.lastIndex}")
                         }
-                        is Sum -> TODO()
-                        is Term -> TODO()
-                        is Ref -> TODO()
                     }
                 }
             }
         }
+        fun sumConstraints() {
+            for (rn in 0..rowsNumber) {
+                (0 until columnsNumber).forEach { cn ->
+                    val name = field(rn, cn)
+                    println("isSum_$name == true => child_$name >= 0 && child_$name <= lastChild_$name")
+                }
+
+                (0 until columnsNumber).forEachAdjacentPair { left, right ->
+                    val leftName = field(rn, left)
+                    val rightName = field(rn, right)
+                    val bottomLeft = field(rn - 1, left)
+                    val bottomRight = field(rn - 1, right)
+                    val leftChild = "child_$leftName"
+                    val rightChild = "child_$rightName"
+                    val leftGroupId = "groupId_$leftName"
+                    val rightGroupId = "groupId_$rightName"
+                    val bottomLeftGroupId = "groupId_$bottomLeft"
+                    val bottomRightGroupId = "groupId_$bottomRight"
+
+                    println("isSum_$leftName == true && $leftGroupId == $rightGroupId => $rightChild == $leftChild && $bottomLeftGroupId == $bottomRightGroupId")
+                }
+            }
+        }
+        fun termConstraints() {
+
+        }
+
+        groupIdConstraints()
+        posConstraints()
+        productConstraints()
+        sumConstraints()
     }
 }
-
-
 
 // cell
 // behaves differently for product and sum rules
 data class Cell(
-    val ruleNumber: Int,
-
-    // position in the rule
+    val row: Int,
+    val col: Int,
+    val rule: Rule,
+    val groupId: Int,
     val pos: Int,
-
-    // sub-rule number
-    val subRuleNumber: Int,
-
-    // position in sub-rule
-    val posInSubRule: Int
+    val child: Int
 )
+
+fun IntRange.forEachAdjacentPair(f: (a: Int, b: Int) -> Unit) {
+    for (i in first until last) {
+        f(i, i + 1)
+    }
+}
 
 /**
  * Laws of cell
