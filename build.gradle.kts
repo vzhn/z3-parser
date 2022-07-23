@@ -9,9 +9,11 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
+    implementation("com.microsoft:z3:4.8.17")
     testImplementation(kotlin("test"))
 }
 
