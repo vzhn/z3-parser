@@ -17,7 +17,7 @@ data class Prod(override val name: String, val args: List<Ref>): Rule() {
         return "$name → ${args.joinToString(" | ")}"
     }
 }
-data class Term(override val name: String, val value: String): Rule() {
+data class Term(override val name: String, val value: Char): Rule() {
     override fun toString(): String {
         return "$name → '$value'"
     }

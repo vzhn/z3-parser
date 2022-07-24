@@ -1,164 +1,60 @@
 package me.vzhilin.gr
 
-import com.microsoft.z3.BoolExpr
-import com.microsoft.z3.BoolSort
 import com.microsoft.z3.Context
-import com.microsoft.z3.Expr
-import com.microsoft.z3.IntExpr
+import com.microsoft.z3.IntNum
 import kotlin.test.Test
 
-class CellsContainer(numberOfCells: Int, ctx: Context) {
-    private val cells = 0 until numberOfCells
-    private val cellFields = mutableMapOf<Pair<Int, Z3Tests.Fields>, IntExpr>()
-
-    fun cell(id: Int) = "cell($id)"
-    fun constName(id: Int, field: Z3Tests.Fields) = "${cell(id)}.${field.toString().lowercase()}"
-    fun const(id: Int, field: Z3Tests.Fields): IntExpr {
-        return cellFields[id to field]!!
-    }
-
-    init {
-        cells.forEach { id ->
-            Z3Tests.Fields.values().forEach { field ->
-                val const = ctx.mkIntConst(constName(id, field))
-                cellFields[id to field] = const
-            }
-        }
-    }
-
-    fun forEach(action: (Int) -> Unit) {
-        cells.forEach(action)
-    }
-
-    fun forEachAdjacentPair(action: (Int, Int) -> Unit) {
-        cells.forEachAdjacentPair(action)
-    }
-}
-
-class CellAssertions(private val cellsContainer: CellsContainer) {
-    fun makeFirstCell(ctx: Context): List<BoolExpr> {
-        val zero = ctx.mkInt(0)
-        return listOf(
-            ctx.mkEq(cellsContainer.const(0, Z3Tests.Fields.LINE), zero),
-            ctx.mkEq(cellsContainer.const(0, Z3Tests.Fields.ROW), zero),
-            ctx.mkEq(cellsContainer.const(0, Z3Tests.Fields.GROUP), zero),
-            ctx.mkEq(cellsContainer.const(0, Z3Tests.Fields.CELL), zero)
-        )
-    }
-
-    fun make(ctx: Context): List<Expr<BoolSort>> {
-        return makeFirstCell(ctx) + makeAdjacentCells(ctx)
-    }
-
-    fun makeAdjacentPair(ctx: Context, left: Int, right: Int): BoolExpr {
-        val one = ctx.mkInt(1)
-        val zero = ctx.mkInt(0)
-        fun inc(ex: IntExpr) = ctx.mkAdd(one, ex)
-        fun const(id: Int, field: Z3Tests.Fields) = cellsContainer.const(id, field)
-
-        fun eq(f: Z3Tests.Fields) = ctx.mkEq(const(right, f), const(left, f))
-        fun eqNext(f: Z3Tests.Fields) = ctx.mkEq(const(right, f), inc(const(left, f)))
-        fun zero(f: Z3Tests.Fields) = ctx.mkEq(const(right, f), zero)
-
-        return ctx.mkOr(
-            ctx.mkAnd(
-                eqNext(Z3Tests.Fields.LINE),
-                zero(Z3Tests.Fields.ROW),
-                zero(Z3Tests.Fields.GROUP),
-                zero(Z3Tests.Fields.CELL)
-            ),
-            ctx.mkAnd(
-                eq(Z3Tests.Fields.LINE),
-                ctx.mkOr(
-                    ctx.mkAnd(
-                        eqNext(Z3Tests.Fields.ROW),
-                        zero(Z3Tests.Fields.GROUP),
-                        zero(Z3Tests.Fields.CELL)
-                    ),
-                    ctx.mkAnd(
-                        eq(Z3Tests.Fields.ROW),
-                        ctx.mkOr(
-                            ctx.mkAnd(
-                                eq(Z3Tests.Fields.GROUP),
-                                eqNext(Z3Tests.Fields.CELL)
-                            ),
-                            ctx.mkAnd(
-                                eqNext(Z3Tests.Fields.GROUP),
-                                zero(Z3Tests.Fields.CELL)
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-
-    fun makeAdjacentCells(ctx: Context): List<BoolExpr> {
-        val rs = mutableListOf<BoolExpr>()
-        cellsContainer.forEachAdjacentPair { left, right ->
-            rs.add(makeAdjacentPair(ctx, left, right))
-        }
-        return rs
-    }
-}
-
-class GrammarAssertions(private val cells: CellsContainer) {
-    fun make(ctx: Context): List<BoolExpr> {
-        val rs = mutableListOf<BoolExpr>()
-        cells.forEachAdjacentPair { left, right ->
-            rs.add(
-                ctx.mkImplies(
-                    ctx.mkEq(
-                        cells.const(right, Z3Tests.Fields.GROUP),
-                        cells.const(left, Z3Tests.Fields.GROUP)
-                    ),
-                    ctx.mkEq(
-                        cells.const(right, Z3Tests.Fields.RULE),
-                        cells.const(left, Z3Tests.Fields.RULE)
-                    )
-                )
-            )
-        }
-
-        return rs
-    }
-}
-
-class SmtParser {
-    private val numberOfCells = 2
-    private val ctx = Context()
-    private val cells = CellsContainer(numberOfCells, ctx)
-}
-
 class Z3Tests {
-    enum class Fields { LINE, ROW, GROUP, RULE, CELL }
+    enum class Fields { GROUP, SUBGROUP, RULE, CELL }
 
     @Test
     fun test() {
-        val numberOfCells = 2
-        solve(numberOfCells)
+        solve("λx.y", 4)
     }
 
-    fun solve(numberOfCells: Int) {
+    fun lambdaCalculus(): Grammar {
+        val X = Term("X", 'x')
+        val Y = Term("Y", 'y')
+        val DOT = Term("DOT", '.')
+        val LAMBDA = Term("LAMBDA", 'λ')
+
+        /* T = V | APP | ABST */
+        val T = Sum("T", "V", "APP", "ABST")
+
+        /* V = A | B | C | D */
+        val V = Sum("V", "X", "Y")
+
+        /* APP = T T */
+        val APP = Prod("APP", "T", "T")
+
+        /* ABST = λV.T */
+        val ABST = Prod("ABST", "LAMBDA", "V", "DOT", "T")
+
+        return Grammar(X, Y, DOT, LAMBDA, T, V, APP, ABST)
+    }
+
+    fun solve(input: String, rows: Int) {
+        val grammar = lambdaCalculus()
         val ctx = Context()
         val solver = ctx.mkSolver()
 
-        val cells = CellsContainer(numberOfCells, ctx)
+        val cells = CellsContainer(rows, input.length, ctx)
         val cellAssertions = CellAssertions(cells)
         solver.add(*cellAssertions.make(ctx).toTypedArray())
 
-        val grammarAssertions = GrammarAssertions(cells)
+        val grammarAssertions = GrammarAssertions(grammar, cells)
         solver.add(*grammarAssertions.make(ctx).toTypedArray())
-        solver.check()
 
+        val inputAssertions = InputAssertions(input, grammar, cells)
+        solver.add(*inputAssertions.make(ctx).toTypedArray())
+        println(solver.check())
 
-
-//        cells.forEach { id ->
-//            Fields.values().forEach { field ->
-//                val const = const(id, field)
-//                val value = (solver.model.getConstInterp(const) as IntNum).int
-//                println("${constName(id, field)} = $value")
-//            }
-//        }
+        cells.forEach { cell ->
+            Fields.values().forEach { field ->
+                val const = cells.const(cell.id, field)
+                val value = (solver.model.getConstInterp(const) as IntNum).int
+                println("${cells.constName(cell.id, field)} = $value")
+            }
+        }
     }
 }
