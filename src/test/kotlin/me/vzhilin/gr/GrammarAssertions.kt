@@ -123,16 +123,28 @@ class GrammarAssertions(
                 }
                 return rs
             }
-            fun adjRuleConstraints(): List<BoolExpr> {
+            fun adjRuleConstraints(): BoolExpr {
+                val sumPairs = g.sums.flatMap { upper ->
+                    upper.args.map(g::resolve).map { bottom ->
+                        g.id(upper) to g.id(bottom)
+                    }
+                }
+
+                val prodPairs = g.prods.flatMap { upper ->
+                    upper.args.map(g::resolve).map { bottom ->
+                        g.id(upper) to g.id(bottom)
+                    }
+                }
+
                 val orSeq = mutableListOf<BoolExpr>()
+                (sumPairs + prodPairs).forEach { (upperRule, bottomRule) ->
+                    orSeq.add(ctx.mkEq(cs.rule(cell.id), ctx.mkInt(upperRule)))
+                    orSeq.add(ctx.mkEq(cs.rule(bottomId), ctx.mkInt(bottomRule)))
+                }
+
                 // bottom is same as upper
                 orSeq.add(ctx.mkEq(cs.rule(bottomId), cs.rule(cell.id)))
-
-                // Σ rule
-
-                // Π rule
-
-                return orSeq
+                return ctx.mkOr(*orSeq.toTypedArray())
             }
 
             if (cell.firstRow) {
@@ -141,7 +153,7 @@ class GrammarAssertions(
             } else {
                 rs.addAll(productConstraints())
                 rs.addAll(sumConstraints())
-                rs.addAll(adjRuleConstraints())
+                rs.add(adjRuleConstraints())
             }
             rs.add(ruleConstraint())
 

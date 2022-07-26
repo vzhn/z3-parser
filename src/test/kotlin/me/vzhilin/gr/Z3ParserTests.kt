@@ -2,6 +2,7 @@ package me.vzhilin.gr
 
 import com.microsoft.z3.Context
 import com.microsoft.z3.IntNum
+import com.microsoft.z3.Params
 import com.microsoft.z3.Solver
 import me.vzhilin.gr.report.writeSvg
 import java.io.File
@@ -50,7 +51,8 @@ class Z3Tests {
 
         val inputAssertions = InputAssertions(input, grammar, cells)
         solver.add(*inputAssertions.make(ctx).toTypedArray())
-        solver.check()
+        println(solver.check())
+        println(solver.unsatCore.toList())
         println(solver.model)
 
         val model = getModel(solver, cells)
