@@ -138,8 +138,12 @@ class GrammarAssertions(
 
                 val orSeq = mutableListOf<BoolExpr>()
                 (sumPairs + prodPairs).forEach { (upperRule, bottomRule) ->
-                    orSeq.add(ctx.mkEq(cs.rule(cell.id), ctx.mkInt(upperRule)))
-                    orSeq.add(ctx.mkEq(cs.rule(bottomId), ctx.mkInt(bottomRule)))
+                    orSeq.add(
+                        ctx.mkAnd(
+                            ctx.mkEq(cs.rule(cell.id), ctx.mkInt(upperRule)),
+                            ctx.mkEq(cs.rule(bottomId), ctx.mkInt(bottomRule))
+                        )
+                    )
                 }
 
                 // bottom is same as upper
@@ -156,7 +160,6 @@ class GrammarAssertions(
                 rs.add(adjRuleConstraints())
             }
             rs.add(ruleConstraint())
-
         }
         return rs
     }

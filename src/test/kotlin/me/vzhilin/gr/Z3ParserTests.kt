@@ -2,7 +2,6 @@ package me.vzhilin.gr
 
 import com.microsoft.z3.Context
 import com.microsoft.z3.IntNum
-import com.microsoft.z3.Params
 import com.microsoft.z3.Solver
 import me.vzhilin.gr.report.writeSvg
 import java.io.File
@@ -13,7 +12,7 @@ class Z3Tests {
 
     @Test
     fun test() {
-        solve("λx.y", 4)
+        solve("xy", 2)
     }
 
     fun lambdaCalculus(): Grammar {
@@ -63,7 +62,7 @@ class Z3Tests {
                 val ruleId = map[Fields.RULE]!!
                 groupId to ruleId
             }.mapValues {
-            (_, cells) -> cells.groupBy { model[it]!![Fields.SUBGROUP]!! }
+                (_, cells) -> cells.groupBy { model[it]!![Fields.SUBGROUP]!! }
             }
         }
 
@@ -73,10 +72,9 @@ class Z3Tests {
     private fun getModel(solver: Solver, cells: CellsContainer): Map<Cell, Map<Fields, Int>> {
         val rs = mutableMapOf<Cell, Map<Fields, Int>>()
         cells.forEach { cell ->
-            rs[cell] = Fields.values().associate { field ->
+            rs[cell] = Fields.values().associateWith { field ->
                 val const = cells.const(cell.id, field)
-                val fieldValue = (solver.model.getConstInterp(const) as IntNum).int
-                field to fieldValue
+                (solver.model.getConstInterp(const) as IntNum).int
             }
         }
         return rs

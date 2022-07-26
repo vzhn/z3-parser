@@ -14,7 +14,7 @@ class CellsContainer(
     private fun cellName(id: Int) = "cell($id)"
     fun constName(id: Int, field: Z3Tests.Fields) = "${cellName(id)}.${field.toString().lowercase()}"
     fun const(id: Int, field: Z3Tests.Fields): IntExpr {
-        return cellFields[id to field]!!
+        return cellFields[id to field] ?: throw IllegalArgumentException("not found: $id, $field")
     }
 
     init {

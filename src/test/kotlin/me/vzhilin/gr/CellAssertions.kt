@@ -11,6 +11,23 @@ class CellAssertions(private val cs: CellsContainer) {
         val zero = ctx.mkInt(0)
         val rs = mutableListOf<BoolExpr>()
 
+
+        (0 until cs.rows).forEach { rowId ->
+            val orExps = mutableListOf<BoolExpr>()
+            (0 until cs.columns).forEach { colId ->
+                val id = colId + rowId * cs.columns
+                fun makeVertAdjacentCells() {
+                    val bottom = cs.bottomId(id)
+                    orExps.add(ctx.mkNot(ctx.mkEq(cs.rule(bottom), cs.rule(id))))
+                }
+                if (rowId > 0) {
+                    makeVertAdjacentCells()
+                }
+            }
+            rs.add(ctx.mkOr(*orExps.toTypedArray()))
+        }
+
+
         cs.forEach { cell ->
             fun makeFirstCell() {
                 rs.add(ctx.mkEq(cs.cell(cell.id), zero))
@@ -46,6 +63,13 @@ class CellAssertions(private val cs: CellsContainer) {
                     ctx.mkImplies(
                         ctx.mkNot(ctx.mkEq(cs.group(prev), cs.group(cell.id))),
                         ctx.mkNot(ctx.mkEq(cs.group(bottomPrev), cs.group(bottom)))
+                    )
+                )
+
+                rs.add(
+                    ctx.mkImplies(
+                        ctx.mkEq(cs.group(prev), cs.group(cell.id)),
+                        ctx.mkEq(cs.rule(prev), cs.rule(cell.id)),
                     )
                 )
             }

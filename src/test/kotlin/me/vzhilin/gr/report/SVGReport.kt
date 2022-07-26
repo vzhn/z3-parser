@@ -38,9 +38,9 @@ fun buildContainer(
         Container(ContainerType.ROW, "row #$rowId", "", rowData.map { (groupIdRuleId, groupData) ->
             val (groupId, ruleId) = groupIdRuleId
             val rule = g.rule(ruleId)
-            Container(ContainerType.ROW, "rule: ${rule.name}", "", groupData.map { (subGroupId, cells) ->
+            Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", groupData.map { (subGroupId, cells) ->
                 Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", cells.map { cell ->
-                    Container(ContainerType.CELL, "", input[cell.col].toString(), emptyList())
+                    Container(ContainerType.CELL, "#${cell.id}", input[cell.col].toString(), emptyList())
                 })
             })
         }).also {
