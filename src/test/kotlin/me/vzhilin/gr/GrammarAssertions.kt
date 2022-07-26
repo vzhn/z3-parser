@@ -123,6 +123,17 @@ class GrammarAssertions(
                 }
                 return rs
             }
+            fun adjRuleConstraints(): List<BoolExpr> {
+                val orSeq = mutableListOf<BoolExpr>()
+                // bottom is same as upper
+                orSeq.add(ctx.mkEq(cs.rule(bottomId), cs.rule(cell.id)))
+
+                // Σ rule
+
+                // Π rule
+
+                return orSeq
+            }
 
             if (cell.firstRow) {
                 rs.addAll(firstRow())
@@ -130,6 +141,7 @@ class GrammarAssertions(
             } else {
                 rs.addAll(productConstraints())
                 rs.addAll(sumConstraints())
+                rs.addAll(adjRuleConstraints())
             }
             rs.add(ruleConstraint())
 
