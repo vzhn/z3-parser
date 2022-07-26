@@ -4,7 +4,7 @@ import com.microsoft.z3.Context
 import com.microsoft.z3.IntExpr
 
 class CellsContainer(
-        private val rows: Int,
+        val rows: Int,
         val columns: Int,
         ctx: Context)
 {
@@ -32,6 +32,7 @@ class CellsContainer(
                 action(Cell(
                     id = row * columns + col,
                     row = row,
+                    col = col,
                     firstRow = row == 0,
                     lastRow = row == rows - 1,
                     firstColumn = col == 0,
@@ -60,6 +61,7 @@ class CellsContainer(
 data class Cell(
     val id: Int,
     val row: Int,
+    val col: Int,
     val firstRow: Boolean,
     val lastRow: Boolean,
     val firstColumn: Boolean,

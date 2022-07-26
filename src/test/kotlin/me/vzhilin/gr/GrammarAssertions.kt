@@ -18,6 +18,12 @@ class GrammarAssertions(
         cs.forEach { cell ->
             val bottomId by lazy { cs.bottomId(cell.id) }
 
+            fun ruleConstraint(): BoolExpr {
+                return ctx.mkAnd(
+                    ctx.mkGe(cs.rule(cell.id), ctx.mkInt(0)),
+                    ctx.mkLe(cs.rule(cell.id), ctx.mkInt(g.allRules.lastIndex))
+                )
+            }
             fun firstRow(): List<BoolExpr> {
                 val exps = g.terms.map { matchRule(ctx, cell.id, it) }.toTypedArray()
                 return listOf(ctx.mkOr(*exps))
@@ -125,6 +131,7 @@ class GrammarAssertions(
                 rs.addAll(productConstraints())
                 rs.addAll(sumConstraints())
             }
+            rs.add(ruleConstraint())
 
         }
         return rs

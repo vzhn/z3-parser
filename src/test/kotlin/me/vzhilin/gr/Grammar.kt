@@ -23,6 +23,10 @@ class Grammar(vararg val allRules: Rule) {
             throw IllegalArgumentException("Rule not found: '$name'")
     }
 
+    fun rule(ruleId: Int): Rule {
+        return idToRule[ruleId] ?: throw IllegalArgumentException("Rule not found for id: '$ruleId'")
+    }
+
     val terms get(): List<Term> {
         return allRules.filterIsInstance<Term>()
     }

@@ -14,13 +14,20 @@ class InputAssertions(
         }
 
         val charToTerms = grammar.terms.groupBy { term -> term.value }
-        return input.flatMapIndexed { index, ch ->
-            val terms = charToTerms[ch] ?:
-                throw IllegalStateException("rule not found for '$ch'")
+        val orExps = input.mapIndexed { index, ch ->
+            val terms = charToTerms[ch] ?: throw IllegalStateException("rule not found for '$ch'")
 
-            terms.map(grammar::id).map {
+            val exps = terms.map(grammar::id).map {
                 ctx.mkEq(cells.rule(index), ctx.mkInt(it))
             }
+
+            ctx.mkAnd(
+                ctx.mkOr(*exps.toTypedArray()),
+                ctx.mkEq(cells.group(index), ctx.mkInt(index)),
+                ctx.mkEq(cells.subgroup(index), ctx.mkInt(0))
+            )
+
         }
+        return orExps
     }
 }

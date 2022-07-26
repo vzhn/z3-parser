@@ -2,6 +2,9 @@ package me.vzhilin.gr
 
 import com.microsoft.z3.Context
 import com.microsoft.z3.IntNum
+import com.microsoft.z3.Solver
+import me.vzhilin.gr.report.writeSvg
+import java.io.File
 import kotlin.test.Test
 
 class Z3Tests {
@@ -47,14 +50,33 @@ class Z3Tests {
 
         val inputAssertions = InputAssertions(input, grammar, cells)
         solver.add(*inputAssertions.make(ctx).toTypedArray())
-        println(solver.check())
+        solver.check()
+        println(solver.model)
 
-        cells.forEach { cell ->
-            Fields.values().forEach { field ->
-                val const = cells.const(cell.id, field)
-                val value = (solver.model.getConstInterp(const) as IntNum).int
-                println("${cells.constName(cell.id, field)} = $value")
+        val model = getModel(solver, cells)
+        val map = model.keys.groupBy { cell -> cell.row }.mapValues {
+            (_, cells) -> cells.groupBy {
+                val map = model[it]!!
+                val groupId = map[Fields.GROUP]!!
+                val ruleId = map[Fields.RULE]!!
+                groupId to ruleId
+            }.mapValues {
+            (_, cells) -> cells.groupBy { model[it]!![Fields.SUBGROUP]!! }
             }
         }
+
+        writeSvg(File("out1.svg"), input, grammar, map)
+    }
+
+    private fun getModel(solver: Solver, cells: CellsContainer): Map<Cell, Map<Fields, Int>> {
+        val rs = mutableMapOf<Cell, Map<Fields, Int>>()
+        cells.forEach { cell ->
+            rs[cell] = Fields.values().associate { field ->
+                val const = cells.const(cell.id, field)
+                val fieldValue = (solver.model.getConstInterp(const) as IntNum).int
+                field to fieldValue
+            }
+        }
+        return rs
     }
 }
