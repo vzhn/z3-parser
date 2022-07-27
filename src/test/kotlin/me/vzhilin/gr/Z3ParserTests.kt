@@ -1,5 +1,6 @@
 package me.vzhilin.gr
 
+import com.microsoft.z3.BoolExpr
 import com.microsoft.z3.Context
 import com.microsoft.z3.IntNum
 import com.microsoft.z3.Solver
@@ -12,7 +13,7 @@ class Z3Tests {
 
     @Test
     fun test() {
-        solve("xy", 2)
+        solve("xy", 3)
     }
 
     fun lambdaCalculus(): Grammar {
@@ -42,15 +43,13 @@ class Z3Tests {
         val solver = ctx.mkSolver()
 
         val cells = CellsContainer(rows, input.length, ctx)
+
         val cellAssertions = CellAssertions(cells)
-        solver.add(*cellAssertions.make(ctx).toTypedArray())
-
         val grammarAssertions = GrammarAssertions(grammar, cells)
-        solver.add(*grammarAssertions.make(ctx).toTypedArray())
-
         val inputAssertions = InputAssertions(input, grammar, cells)
-        solver.add(*inputAssertions.make(ctx).toTypedArray())
-        println(solver.check())
+
+        val assertions = cellAssertions.make(ctx) + grammarAssertions.make(ctx) + inputAssertions.make(ctx)
+        println(solver.check(*assertions.toTypedArray()))
         println(solver.unsatCore.toList())
         println(solver.model)
 
@@ -67,6 +66,10 @@ class Z3Tests {
         }
 
         writeSvg(File("out1.svg"), input, grammar, map)
+    }
+
+    private fun printUnsatCore(toList: List<BoolExpr>) {
+
     }
 
     private fun getModel(solver: Solver, cells: CellsContainer): Map<Cell, Map<Fields, Int>> {

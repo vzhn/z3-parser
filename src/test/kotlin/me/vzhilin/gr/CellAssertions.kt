@@ -24,9 +24,10 @@ class CellAssertions(private val cs: CellsContainer) {
                     makeVertAdjacentCells()
                 }
             }
-            rs.add(ctx.mkOr(*orExps.toTypedArray()))
+            if (!orExps.isEmpty()) {
+                rs.add(ctx.mkOr(*orExps.toTypedArray()))
+            }
         }
-
 
         cs.forEach { cell ->
             fun makeFirstCell() {
