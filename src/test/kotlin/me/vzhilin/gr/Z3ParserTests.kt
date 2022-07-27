@@ -13,7 +13,7 @@ class Z3Tests {
 
     @Test
     fun test() {
-        solve("xy", 3)
+        solve("yx", 4)
     }
 
     fun lambdaCalculus(): Grammar {
@@ -77,7 +77,12 @@ class Z3Tests {
         cells.forEach { cell ->
             rs[cell] = Fields.values().associateWith { field ->
                 val const = cells.const(cell.id, field)
-                (solver.model.getConstInterp(const) as IntNum).int
+                val constInterp = solver.model.getConstInterp(const)
+                if (constInterp != null) {
+                    (constInterp as IntNum).int
+                } else {
+                    0
+                }
             }
         }
         return rs

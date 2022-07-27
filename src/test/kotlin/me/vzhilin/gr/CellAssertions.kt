@@ -11,7 +11,6 @@ class CellAssertions(private val cs: CellsContainer) {
         val zero = ctx.mkInt(0)
         val rs = mutableListOf<BoolExpr>()
 
-
         (0 until cs.rows).forEach { rowId ->
             val orExps = mutableListOf<BoolExpr>()
             (0 until cs.columns).forEach { colId ->
