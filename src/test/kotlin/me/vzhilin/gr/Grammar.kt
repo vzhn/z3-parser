@@ -1,6 +1,7 @@
 package me.vzhilin.gr
 
 class Grammar(vararg val allRules: Rule) {
+    val size: Int get() = allRules.size
     private val idToRule: Map<Int, Rule>
     private val ruleToId: Map<Rule, Int>
 
