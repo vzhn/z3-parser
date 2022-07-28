@@ -8,20 +8,11 @@ enum class RuleType { TERM, SUM, PROD }
 
 sealed class Constraints {
     data class FirstColumn(val handler: FirstColumnHandler): Constraints()
-    data class Horiz(val handler: HorizHandler): Constraints()
-    data class Vert(val handler: VertHandler): Constraints()
+    data class HorizontalPair(val handler: HorizontalHandler): Constraints()
+    data class VerticalPair(val handler: VerticalHandler): Constraints()
     data class Column(val handler: ColumnHandler): Constraints()
     data class Row(val handler: RowHandler): Constraints()
     data class Cell(val handler: CellHandler): Constraints()
-}
-
-enum class Placement { FIRST, MIDDLE, LAST }
-
-data class Placement2D(
-    val horiz: Placement,
-    val vert: Placement
-) {
-    val isFirstCell get() = horiz == Placement.FIRST && vert == Placement.FIRST
 }
 
 interface Environment {
@@ -30,10 +21,7 @@ interface Environment {
     val columns: Int
 }
 
-interface Cell {
-    val row: Int
-    val col: Int
-}
+data class Cell(val row: Int, val col: Int)
 
 sealed class Exp
 sealed class NatExp
@@ -41,15 +29,17 @@ sealed class NatExp
 object Zero: NatExp()
 object One: NatExp()
 data class Inc(val n: NatExp): NatExp()
-
 data class Const(val n: Int): NatExp()
-data class RowId(val cell: Cell): NatExp()
-data class ColumnId(val cell: Cell): NatExp()
-data class RuleTypeId(val cell: Cell): NatExp()
-data class RuleId(val cell: Cell): NatExp()
-data class GroupId(val cell: Cell): NatExp()
-data class SubGroupId(val cell: Cell): NatExp()
-data class Index(val cell: Cell): NatExp()
+sealed class CellField: NatExp() {
+    abstract val cell: Cell
+}
+data class RowId(override val cell: Cell): CellField()
+data class ColumnId(override val cell: Cell): CellField()
+data class RuleTypeId(override val cell: Cell): CellField()
+data class RuleId(override val cell: Cell): CellField()
+data class GroupId(override val cell: Cell): CellField()
+data class SubGroupId(override val cell: Cell): CellField()
+data class Index(override val cell: Cell): CellField()
 
 data class Ge(val lhs: NatExp, val rhs: NatExp): Exp()
 data class Le(val lhs: NatExp, val rhs: NatExp): Exp()
@@ -63,15 +53,14 @@ data class And(val exps: List<Exp>): Exp() {
     constructor(vararg exps: Exp): this(exps.toList())
 }
 
-typealias HorizHandler = Environment.(left: Cell, right: Cell) -> Exp
-typealias VertHandler = Environment.(upper: Cell, bottom: Cell) -> Exp
+typealias HorizontalHandler = Environment.(left: Cell, right: Cell) -> Exp
+typealias VerticalHandler = Environment.(upper: Cell, bottom: Cell) -> Exp
 typealias CellHandler = Environment.(cell: Cell) -> Exp
 typealias ColumnHandler = Environment.(column: Int, cells: List<Cell>) -> Exp
 typealias FirstColumnHandler = Environment.(cell: Cell) -> Exp
 typealias RowHandler = Environment.(row: Int, cells: List<Cell>) -> Exp
 
-
-class Field {
+class CellMatrix {
     private val constraints = mutableListOf<Constraints>()
 
     init {

@@ -1,26 +1,6 @@
 package me.vzhilin.gr.next.constraints
 
-import me.vzhilin.gr.next.And
-import me.vzhilin.gr.next.Cell
-import me.vzhilin.gr.next.ColumnId
-import me.vzhilin.gr.next.Const
-import me.vzhilin.gr.next.Constraints
-import me.vzhilin.gr.next.Eq
-import me.vzhilin.gr.next.Exp
-import me.vzhilin.gr.next.Ge
-import me.vzhilin.gr.next.GroupId
-import me.vzhilin.gr.next.Impl
-import me.vzhilin.gr.next.Inc
-import me.vzhilin.gr.next.Index
-import me.vzhilin.gr.next.Le
-import me.vzhilin.gr.next.NatExp
-import me.vzhilin.gr.next.Neq
-import me.vzhilin.gr.next.Or
-import me.vzhilin.gr.next.RowId
-import me.vzhilin.gr.next.RuleId
-import me.vzhilin.gr.next.RuleTypeId
-import me.vzhilin.gr.next.SubGroupId
-import me.vzhilin.gr.next.Zero
+import me.vzhilin.gr.next.*
 
 val BasicRanges = Constraints.Cell { cell ->
     And(
@@ -37,20 +17,21 @@ val BasicRanges = Constraints.Cell { cell ->
         )
     )
 }
+
 val StartFields = Constraints.FirstColumn { cell ->
     And(Eq(GroupId(cell), Zero),
         Eq(SubGroupId(cell), Zero),
         Eq(Index(cell), Zero))
 }
 
-val AdjGroupId = Constraints.Horiz { left: Cell, right: Cell ->
+val AdjGroupId = Constraints.HorizontalPair { left: Cell, right: Cell ->
     val leftGroupId = GroupId(left)
     val rightGroupId = GroupId(right)
     Or(leftGroupId eq rightGroupId, Inc(leftGroupId) eq rightGroupId)
 }
 
 // left.groupId = right.groupId => right.subGroupId = left.subGroupId + 1 || right.subGroupId = 0
-val AdjSubGroupId = Constraints.Horiz { left: Cell, right: Cell ->
+val AdjSubGroupId = Constraints.HorizontalPair { left: Cell, right: Cell ->
     val leftGroupId = GroupId(left)
     val rightGroupId = GroupId(right)
     val leftSubGroupId = SubGroupId(left)
@@ -60,13 +41,17 @@ val AdjSubGroupId = Constraints.Horiz { left: Cell, right: Cell ->
 }
 
 // left.groupId = right.groupId => rightIndex = leftIndex + 1
-val AdjCellId = Constraints.Horiz { left: Cell, right: Cell ->
+val AdjCellIndex = Constraints.HorizontalPair { left: Cell, right: Cell ->
     val leftGroupId = GroupId(left)
     val rightGroupId = GroupId(right)
     val leftIndex = Index(left)
     val rightIndex = Index(right)
     Impl(leftGroupId eq rightGroupId, Inc(leftIndex) eq rightIndex)
     Impl(leftGroupId neq rightGroupId, rightIndex eq Zero)
+}
+
+val DontDivideGroup = Constraints.VerticalPair { upper, bottom ->
+    Impl(Index(upper) neq Zero, Index(bottom) neq Zero)
 }
 
 infix fun NatExp.eq(rhs: NatExp): Exp {
