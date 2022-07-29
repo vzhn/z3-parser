@@ -4,7 +4,7 @@ import me.vzhilin.gr.next.*
 import kotlin.reflect.KMutableProperty1
 
 data class Matrix(
-    val env: Environment
+    val env: Config
 ) {
     private val columns: Int = env.columns
     private val rows: Int = env.rows
@@ -51,7 +51,7 @@ data class Matrix(
                 is Index -> cell.index
                 is RowId -> cell.rowId
                 is RuleId -> cell.ruleId
-                is RuleTypeId -> cell.ruleTypeId
+                is ProductionTypeId -> cell.prodTypeId
                 is SubGroupId -> cell.subGroupId
             }
         }
@@ -67,6 +67,7 @@ data class Matrix(
             is Or -> e.exps.any(this::ev)
             is And -> e.exps.all(this::ev)
             is Eq -> ev(e.lhs) == ev(e.rhs)
+            is Iff -> ev(e.lhs) == ev(e.rhs)
             is Ge -> ev(e.lhs) >= ev(e.rhs)
             is Impl -> !ev(e.lhs) || ev(e.rhs)
             is Le -> ev(e.lhs) <= ev(e.rhs)
@@ -104,6 +105,20 @@ data class Matrix(
                             val right = Cell(rowId, colId)
                             val left = Cell(rowId, colId - 1)
                             expressions.add(c.handler(env, left, right))
+                        }
+                    }
+                }
+                is Constraints.Quad -> {
+                    for (rowId in 1 until rows) {
+                        for (colId in 1 until columns) {
+                            val right = Cell(rowId, colId)
+                            val left = Cell(rowId, colId - 1)
+                            val rightBottom = Cell(rowId - 1, colId)
+                            val leftBottom = Cell(rowId - 1, colId - 1)
+                            expressions.add(c.handler(env,
+                                left, right,
+                                leftBottom, rightBottom
+                            ))
                         }
                     }
                 }

@@ -1,8 +1,6 @@
 package me.vzhilin.gr.next.constraints
 
 import me.vzhilin.gr.next.Cell
-import me.vzhilin.gr.next.Environment
-import me.vzhilin.gr.simpleGrammar
 
 abstract class AbstractConstraintTests {
 

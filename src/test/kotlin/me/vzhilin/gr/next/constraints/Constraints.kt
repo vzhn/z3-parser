@@ -1,6 +1,7 @@
 package me.vzhilin.gr.next.constraints
 
 import me.vzhilin.gr.next.*
+import me.vzhilin.gr.next.ProductionTypeId.Companion.PROD
 
 val BasicRanges = Constraints.Cell { cell ->
     And(
@@ -10,7 +11,7 @@ val BasicRanges = Constraints.Cell { cell ->
         ),
         And(
             RuleId(cell) ge Zero, RuleId(cell) le Const(grammar.size - 1),
-            RuleTypeId(cell) ge Zero, RuleTypeId(cell) le Const(2),
+            ProductionTypeId(cell) ge Zero, ProductionTypeId(cell) le Const(2),
             GroupId(cell) ge Zero, GroupId(cell) le Const(columns - 1),
             SubGroupId(cell) ge Zero, SubGroupId(cell) le Const(columns - 1),
             Index(cell) ge Zero, Index(cell) le Const(columns - 1),
@@ -57,6 +58,35 @@ val AdjCellIndex = Constraints.HorizontalPair { left: Cell, right: Cell ->
 
 val DontDivideGroup = Constraints.VerticalPair { upper, bottom ->
     Impl(Index(upper) neq Zero, Index(bottom) neq Zero)
+}
+
+val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { left, right ->
+    Impl(
+        GroupId(left) eq GroupId(right),
+        RuleId(left) eq RuleId(right)
+    )
+}
+
+val SameRuleIdImplSameRuleType = Constraints.HorizontalPair { left, right ->
+    Impl(
+        RuleId(left) eq RuleId(right),
+        ProductionTypeId(left) eq ProductionTypeId(right)
+    )
+}
+
+val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Cell { cell ->
+    Impl(ProductionTypeId(cell) neq PROD, SubGroupId(cell) eq Zero)
+}
+
+val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, rightBottom ->
+    Impl(
+        And(ProductionTypeId(left) eq PROD,
+            GroupId(left) eq GroupId(right)),
+        Iff(
+            SubGroupId(left) eq SubGroupId(right),
+            GroupId(left) eq GroupId(right)
+        )
+    )
 }
 
 infix fun NatExp.eq(rhs: NatExp): Exp {
