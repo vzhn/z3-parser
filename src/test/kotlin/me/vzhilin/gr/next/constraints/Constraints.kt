@@ -1,5 +1,6 @@
 package me.vzhilin.gr.next.constraints
 
+import me.vzhilin.gr.Prod
 import me.vzhilin.gr.next.*
 import me.vzhilin.gr.next.ProductionTypeId.Companion.PROD
 
@@ -84,9 +85,44 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, r
             GroupId(left) eq GroupId(right)),
         Iff(
             SubGroupId(left) eq SubGroupId(right),
-            GroupId(left) eq GroupId(right)
+            GroupId(leftBottom) eq GroupId(rightBottom)
         )
     )
+}
+
+fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
+    val args = r.args.map(grammar::resolve)
+    val rs = mutableListOf<Constraints>()
+    fun isProd(cell: Cell) = And(
+        RuleId(cell) eq Const(grammar.id(r)),
+        ProductionTypeId(cell) eq PROD
+    )
+
+    rs.add(Constraints.Quad { left, right, bottomLeft, bottomRight ->
+        args.zipWithNext().mapIndexed { index, (leftRule, rightRule) ->
+            val leftRuleId = grammar.id(leftRule)
+            val rightRuleId = grammar.id(rightRule)
+
+            Impl(
+                And(
+                    SubGroupId(left) eq Const(index),
+                    SubGroupId(right) eq Const(index + 1),
+                ),
+                And(
+                    RuleId(bottomLeft) eq Const(leftRuleId),
+                    RuleId(bottomRight) eq Const(rightRuleId)
+                )
+            )
+
+        }
+    TODO()
+//        Impl(
+//            And(isProd(left), isProd(right), SubGroupId(left) neq SubGroupId(right)),
+//
+//        )
+    })
+
+    return rs
 }
 
 infix fun NatExp.eq(rhs: NatExp): Exp {
@@ -104,3 +140,5 @@ infix fun NatExp.ge(rhs: NatExp): Exp {
 infix fun NatExp.le(rhs: NatExp): Exp {
     return Le(this, rhs)
 }
+
+

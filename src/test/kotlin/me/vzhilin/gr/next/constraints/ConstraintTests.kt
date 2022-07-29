@@ -223,7 +223,7 @@ class ConstraintTests: AbstractConstraintTests() {
     }
 
     @Test
-    fun `for product rule different subGroupIds == different groupIds`() {
+    fun `for product rule different subGroupIds iff different groupIds in bottom cells`() {
         assert(Matrix(env2x2).also {
             it.set(MatrixCell::prodTypeId,
                 PROD.n, PROD.n,
