@@ -36,8 +36,11 @@ val AdjSubGroupId = Constraints.HorizontalPair { left: Cell, right: Cell ->
     val rightGroupId = GroupId(right)
     val leftSubGroupId = SubGroupId(left)
     val rightSubGroupId = SubGroupId(right)
-    Impl(leftGroupId eq rightGroupId,
-        Or(Inc(leftSubGroupId) eq rightSubGroupId, Zero eq rightGroupId))
+    And(
+        Impl(leftGroupId eq rightGroupId,
+            Or(Inc(leftSubGroupId) eq rightSubGroupId, leftSubGroupId eq rightSubGroupId)),
+        Impl(leftGroupId neq rightGroupId, Zero eq rightSubGroupId)
+    )
 }
 
 // left.groupId = right.groupId => rightIndex = leftIndex + 1
@@ -46,8 +49,10 @@ val AdjCellIndex = Constraints.HorizontalPair { left: Cell, right: Cell ->
     val rightGroupId = GroupId(right)
     val leftIndex = Index(left)
     val rightIndex = Index(right)
-    Impl(leftGroupId eq rightGroupId, Inc(leftIndex) eq rightIndex)
-    Impl(leftGroupId neq rightGroupId, rightIndex eq Zero)
+    And(
+        Impl(leftGroupId eq rightGroupId, Inc(leftIndex) eq rightIndex),
+        Impl(leftGroupId neq rightGroupId, rightIndex eq Zero)
+    )
 }
 
 val DontDivideGroup = Constraints.VerticalPair { upper, bottom ->

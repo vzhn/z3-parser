@@ -5,11 +5,7 @@ import me.vzhilin.gr.next.Environment
 import me.vzhilin.gr.simpleGrammar
 
 abstract class AbstractConstraintTests {
-    protected val env = object : Environment {
-        override val grammar = simpleGrammar()
-        override val rows = 2
-        override val columns = 2
-    }
+
 }
 
 fun prod(rows: Int, columns: Int): List<Cell> {

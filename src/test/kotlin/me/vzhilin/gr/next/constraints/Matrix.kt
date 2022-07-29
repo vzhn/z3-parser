@@ -4,10 +4,11 @@ import me.vzhilin.gr.next.*
 import kotlin.reflect.KMutableProperty1
 
 data class Matrix(
-    val env: Environment,
-    val columns: Int,
-    val rows: Int,
+    val env: Environment
 ) {
+    private val columns: Int = env.columns
+    private val rows: Int = env.rows
+
     // (col, row)
     private val data: MutableList<MutableList<MatrixCell>> = mutableListOf()
 
@@ -32,7 +33,9 @@ data class Matrix(
     }
 
     fun validate(vararg constraints: Constraints): Boolean {
-        return getExpressions(constraints.toList()).all { ev(it) }
+        val expressions = getExpressions(constraints.toList())
+        val failedExp = expressions.firstOrNull { !ev(it) }
+        return failedExp == null
     }
 
     fun get(c: Cell): MatrixCell {
