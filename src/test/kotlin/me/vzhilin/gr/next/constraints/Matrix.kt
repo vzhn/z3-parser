@@ -72,6 +72,9 @@ data class Matrix(
             is Impl -> !ev(e.lhs) || ev(e.rhs)
             is Le -> ev(e.lhs) <= ev(e.rhs)
             is Neq -> ev(e.lhs) != ev(e.rhs)
+            is Gt -> ev(e.lhs) > ev(e.rhs)
+            is Lt -> ev(e.lhs) < ev(e.rhs)
+            is Not -> !ev(e.lhs)
         }
         return res
     }

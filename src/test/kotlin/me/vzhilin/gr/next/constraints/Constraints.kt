@@ -91,25 +91,91 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, r
 }
 
 fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
-
-    val args = r.args.map(grammar::resolve)
-    val rs = mutableListOf<Constraints>()
+    val args = r.args.map(grammar::resolve).map(grammar::id).map(::Const)
     fun isProd(cell: Cell) = And(
         RuleId(cell) eq Const(grammar.id(r)),
         ProductionTypeId(cell) eq PROD
     )
 
-    rs.add(Constraints.VerticalPair { cell, bottom ->
-        if (cell.col == 0) {
-            TODO()
-        } else if (cell.col == last) {
-            TODO()
-        } else {
-            TODO()
-        }
-    })
+    val rs = mutableListOf<Constraints>()
+    rs.add(Constraints.Quad { left, right, bottomLeft, bottomRight ->
+        val orExp = Or(args.zipWithNext().mapIndexed {
+            index, (lhs, rhs) -> And(
+                RuleId(bottomLeft) eq lhs,
+                RuleId(bottomRight) eq rhs,
+                SubGroupId(left) eq Const(index),
+                SubGroupId(right) eq Const(index + 1)
+            )
+        })
+        val cases = mutableListOf<Exp>()
 
+        // start
+        cases.add(Impl(
+            And(isProd(right), GroupId(left) neq GroupId(right)),
+            And(
+                SubGroupId(right) eq Zero,
+                RuleId(bottomRight) eq args.first()
+            )))
+
+        if (left.col == 0) {
+            cases.add(Impl(isProd(left), And(SubGroupId(left) eq Zero, RuleId(bottomLeft) eq args.first())))
+        }
+
+        // middle
+        cases.add(
+            Impl(
+                And(isProd(left), isProd(right), GroupId(left) eq GroupId(right)),
+                Or(
+                    And(
+                        SubGroupId(left) eq SubGroupId(right),
+                        GroupId(bottomLeft) eq GroupId(bottomRight)
+                    ),
+                    And(
+                        Inc(SubGroupId(left)) eq SubGroupId(right),
+                        Inc(GroupId(bottomLeft)) eq GroupId(bottomRight),
+                        orExp
+                    )
+                )
+            )
+        )
+
+        // finish
+        cases.add(Impl(
+            And(isProd(left), GroupId(left) neq GroupId(right)),
+            And(
+                SubGroupId(left) eq Const(args.lastIndex),
+                RuleId(bottomRight) eq args.last()
+            )
+        ))
+
+        if (right.col == columns - 1) {
+            cases.add(Impl(
+                isProd(right),
+                And(
+                    SubGroupId(right) eq Const(args.lastIndex),
+                    RuleId(bottomRight) eq args.last()
+                )
+            ))
+        }
+
+        And(cases)
+    })
     return rs
+}
+
+fun Config.allConstraints(): List<Constraints> {
+    return listOf(
+        BasicRanges,
+        StartFields,
+        AdjGroupId,
+        AdjSubGroupId,
+        AdjCellIndex,
+        DontDivideGroup,
+        SameGroupIdImplSameRuleId,
+        SameRuleIdImplSameRuleType,
+        SubGroupIdAlwaysZeroForNonProductionRules,
+        DiffSubGroupIdIffDiffGroupId
+    ) + grammar.prods.flatMap(::prodRuleConstraints)
 }
 
 infix fun NatExp.eq(rhs: NatExp): Exp {
