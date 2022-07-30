@@ -105,3 +105,10 @@ data class Not(val lhs: Exp): Exp() {
         return "!$lhs"
     }
 }
+
+infix fun NatExp.eq(rhs: NatExp) = Eq(this, rhs)
+infix fun NatExp.neq(rhs: NatExp) = Neq(this, rhs)
+infix fun NatExp.ge(rhs: NatExp) = Ge(this, rhs)
+infix fun NatExp.le(rhs: NatExp) = Le(this, rhs)
+infix fun NatExp.gt(rhs: NatExp) = Gt(this, rhs)
+infix fun NatExp.lt(rhs: NatExp) = Lt(this, rhs)

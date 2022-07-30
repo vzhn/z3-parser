@@ -23,6 +23,10 @@ import me.vzhilin.gr.constraints.exp.RowId
 import me.vzhilin.gr.constraints.exp.RuleId
 import me.vzhilin.gr.constraints.exp.SubGroupId
 import me.vzhilin.gr.constraints.exp.Zero
+import me.vzhilin.gr.constraints.exp.eq
+import me.vzhilin.gr.constraints.exp.ge
+import me.vzhilin.gr.constraints.exp.le
+import me.vzhilin.gr.constraints.exp.neq
 import me.vzhilin.gr.model.Cell
 import me.vzhilin.gr.rules.Prod
 
@@ -202,7 +206,6 @@ fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
     })
     return rs
 }
-
 fun Config.allConstraints(): List<Constraints> {
     return listOf(
         BasicRanges,
@@ -217,28 +220,3 @@ fun Config.allConstraints(): List<Constraints> {
         DiffSubGroupIdIffDiffGroupId
     ) + grammar.prods.flatMap(::prodRuleConstraints)
 }
-
-infix fun NatExp.eq(rhs: NatExp): Exp {
-    return Eq(this, rhs)
-}
-
-infix fun NatExp.neq(rhs: NatExp): Exp {
-    return Neq(this, rhs)
-}
-
-infix fun NatExp.ge(rhs: NatExp): Exp {
-    return Ge(this, rhs)
-}
-
-infix fun NatExp.le(rhs: NatExp): Exp {
-    return Le(this, rhs)
-}
-
-infix fun NatExp.gt(rhs: NatExp): Exp {
-    return Gt(this, rhs)
-}
-
-infix fun NatExp.lt(rhs: NatExp): Exp {
-    return Lt(this, rhs)
-}
-
