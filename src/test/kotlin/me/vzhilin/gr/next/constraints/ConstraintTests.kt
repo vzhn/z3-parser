@@ -1,49 +1,55 @@
 package me.vzhilin.gr.next.constraints
 
-import me.vzhilin.gr.next.Config
-import me.vzhilin.gr.next.ProductionTypeId.Companion.BYPASS
-import me.vzhilin.gr.next.ProductionTypeId.Companion.PROD
-import me.vzhilin.gr.next.ProductionTypeId.Companion.SUM
+import me.vzhilin.gr.constraints.AdjCellIndex
+import me.vzhilin.gr.constraints.AdjGroupId
+import me.vzhilin.gr.constraints.AdjSubGroupId
+import me.vzhilin.gr.constraints.BasicRanges
+import me.vzhilin.gr.constraints.Config
+import me.vzhilin.gr.constraints.DiffSubGroupIdIffDiffGroupId
+import me.vzhilin.gr.constraints.DontDivideGroup
+import me.vzhilin.gr.constraints.SameGroupIdImplSameRuleId
+import me.vzhilin.gr.constraints.SameRuleIdImplSameRuleType
+import me.vzhilin.gr.constraints.StartFields
+import me.vzhilin.gr.constraints.SubGroupIdAlwaysZeroForNonProductionRules
+import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.BYPASS
+import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
+import me.vzhilin.gr.model.Matrix
+import me.vzhilin.gr.model.MatrixCell
 import me.vzhilin.gr.simpleGrammar
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class ConstraintTests: AbstractConstraintTests() {
-    private val env1x4 = object : Config {
-        override val grammar = simpleGrammar()
-        override val rows = 1
-        override val columns = 4
-    }
+class ConstraintTests {
+    private val env1x4 = Config(
+        grammar = simpleGrammar(),
+        rows = 1,
+        columns = 4
+    )
 
-    private val env2x2 = object : Config {
-        override val grammar = simpleGrammar()
-        override val rows = 2
-        override val columns = 2
-    }
+    private val env2x2 = Config(
+        grammar = simpleGrammar(),
+        rows = 2,
+        columns = 2
+    )
 
     @Test
     fun `basic range constraints`() {
-        val env = object : Config {
-            override val grammar = simpleGrammar()
-            override val rows = 1
-            override val columns = 4
-        }
-
         assertTrue(
-            Matrix(env).also {
+            Matrix(env1x4).also {
                 it.set(MatrixCell::index, 0, 1, 2, 3)
             }.validate(BasicRanges)
         )
 
         assertFalse(
-            Matrix(env).also {
+            Matrix(env1x4).also {
                 it.set(MatrixCell::index, 1, 2, 3, 4)
             }.validate(BasicRanges)
         )
 
         assertTrue(
-            Matrix(env).also {
+            Matrix(env1x4).also {
                 it.set(MatrixCell::index, 0, 1, 0, 1)
             }.validate(BasicRanges)
         )
@@ -144,14 +150,16 @@ class ConstraintTests: AbstractConstraintTests() {
     @Test
     fun `dont divide group`() {
         assertFalse(Matrix(env2x2).also {
-            it.set(MatrixCell::index,
+            it.set(
+                MatrixCell::index,
                 0, 1,
                 0, 0
             )
         }.validate(DontDivideGroup))
 
         assert(Matrix(env2x2).also {
-            it.set(MatrixCell::index,
+            it.set(
+                MatrixCell::index,
                 0, 1,
                 0, 1
             )
@@ -225,25 +233,31 @@ class ConstraintTests: AbstractConstraintTests() {
     @Test
     fun `for product rule different subGroupIds iff different groupIds in bottom cells`() {
         assert(Matrix(env2x2).also {
-            it.set(MatrixCell::prodTypeId,
+            it.set(
+                MatrixCell::prodTypeId,
                 PROD.n, PROD.n,
                 BYPASS.n, BYPASS.n)
-            it.set(MatrixCell::groupId,
+            it.set(
+                MatrixCell::groupId,
                 0, 0,
                 0, 0)
-            it.set(MatrixCell::subGroupId,
+            it.set(
+                MatrixCell::subGroupId,
                 1, 1,
                 0, 0)
         }.validate(DiffSubGroupIdIffDiffGroupId))
 
         assertFalse(Matrix(env2x2).also {
-            it.set(MatrixCell::prodTypeId,
+            it.set(
+                MatrixCell::prodTypeId,
                 PROD.n, PROD.n,
                 BYPASS.n, BYPASS.n)
-            it.set(MatrixCell::groupId,
+            it.set(
+                MatrixCell::groupId,
                 1, 1,
                 0, 0)
-            it.set(MatrixCell::subGroupId,
+            it.set(
+                MatrixCell::subGroupId,
                 1, 0,
                 0, 0)
         }.validate(DiffSubGroupIdIffDiffGroupId))

@@ -1,4 +1,4 @@
-package me.vzhilin.gr
+package me.vzhilin.gr.rules
 
 class Grammar(vararg val allRules: Rule) {
     val size: Int get() = allRules.size

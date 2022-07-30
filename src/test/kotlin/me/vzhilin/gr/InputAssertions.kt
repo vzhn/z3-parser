@@ -2,6 +2,7 @@ package me.vzhilin.gr
 
 import com.microsoft.z3.BoolExpr
 import com.microsoft.z3.Context
+import me.vzhilin.gr.rules.Grammar
 
 class InputAssertions(
     val input: String,

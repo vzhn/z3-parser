@@ -1,7 +1,7 @@
 package me.vzhilin.gr.report
 
 import me.vzhilin.gr.Cell
-import me.vzhilin.gr.Grammar
+import me.vzhilin.gr.rules.Grammar
 import java.io.File
 import java.io.PrintWriter
 

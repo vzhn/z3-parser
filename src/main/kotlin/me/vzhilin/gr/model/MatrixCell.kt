@@ -1,4 +1,4 @@
-package me.vzhilin.gr.next.constraints
+package me.vzhilin.gr.model
 
 data class MatrixCell (
     val rowId: Int,

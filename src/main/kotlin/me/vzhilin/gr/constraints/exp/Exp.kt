@@ -1,29 +1,6 @@
-package me.vzhilin.gr.next
+package me.vzhilin.gr.constraints.exp
 
-import me.vzhilin.gr.Grammar
-import me.vzhilin.gr.next.constraints.StartFields
-import me.vzhilin.gr.next.constraints.AdjGroupId
-
-
-sealed class Constraints {
-    data class FirstColumn(val handler: FirstColumnHandler): Constraints()
-    data class HorizontalPair(val handler: HorizontalHandler): Constraints()
-    data class VerticalPair(val handler: VerticalHandler): Constraints()
-    data class Quad(val handler: QuadHandler): Constraints()
-    data class Column(val handler: ColumnHandler): Constraints()
-    data class Row(val handler: RowHandler): Constraints()
-    data class Cell(val handler: CellHandler): Constraints()
-}
-
-interface Config {
-    val grammar: Grammar
-    val rows: Int
-    val columns: Int
-}
-
-data class Cell(val row: Int, val col: Int) {
-    override fun toString() = "Cell($row, $col)"
-}
+import me.vzhilin.gr.model.Cell
 
 sealed class Exp
 sealed class NatExp
@@ -126,21 +103,5 @@ data class And(val exps: List<Exp>): Exp() {
 data class Not(val lhs: Exp): Exp() {
     override fun toString(): String {
         return "!$lhs"
-    }
-}
-
-typealias HorizontalHandler = Config.(left: Cell, right: Cell) -> Exp
-typealias VerticalHandler = Config.(upper: Cell, bottom: Cell) -> Exp
-typealias CellHandler = Config.(cell: Cell) -> Exp
-typealias ColumnHandler = Config.(column: Int, cells: List<Cell>) -> Exp
-typealias FirstColumnHandler = Config.(cell: Cell) -> Exp
-typealias RowHandler = Config.(row: Int, cells: List<Cell>) -> Exp
-typealias QuadHandler = Config.(left: Cell, right: Cell, bottomLeft: Cell, bottomRight: Cell) -> Exp
-class CellMatrix {
-    private val constraints = mutableListOf<Constraints>()
-
-    init {
-        constraints.add(StartFields)
-        constraints.add(AdjGroupId)
     }
 }

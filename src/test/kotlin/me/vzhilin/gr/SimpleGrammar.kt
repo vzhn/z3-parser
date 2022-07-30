@@ -1,5 +1,10 @@
 package me.vzhilin.gr
 
+import me.vzhilin.gr.rules.Grammar
+import me.vzhilin.gr.rules.Prod
+import me.vzhilin.gr.rules.Sum
+import me.vzhilin.gr.rules.Term
+
 fun simpleGrammar(): Grammar {
     val x = Term("X", 'x')
     val y = Term("Y", 'y')

@@ -85,5 +85,4 @@ class CellAssertions(private val cs: CellsContainer) {
         }
         return rs
     }
-
 }

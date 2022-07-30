@@ -1,4 +1,4 @@
-package me.vzhilin.gr
+package me.vzhilin.gr.rules
 
 import kotlin.IllegalStateException
 
@@ -16,6 +16,7 @@ data class Sum(override val name: String, val args: List<Ref>): Rule() {
         return "$name → ${args.joinToString(" ")}"
     }
 }
+
 data class Prod(override val name: String, val args: List<Ref>): Rule() {
     init {
         if (args.size < 2) throw IllegalStateException()
@@ -26,11 +27,13 @@ data class Prod(override val name: String, val args: List<Ref>): Rule() {
         return "$name → ${args.joinToString(" | ")}"
     }
 }
+
 data class Term(override val name: String, val value: Char): Rule() {
     override fun toString(): String {
         return "$name → '$value'"
     }
 }
+
 data class Ref(override val name: String): Rule() {
     override fun toString(): String {
         return name

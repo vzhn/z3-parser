@@ -5,6 +5,10 @@ import com.microsoft.z3.Context
 import com.microsoft.z3.IntNum
 import com.microsoft.z3.Solver
 import me.vzhilin.gr.report.writeSvg
+import me.vzhilin.gr.rules.Grammar
+import me.vzhilin.gr.rules.Prod
+import me.vzhilin.gr.rules.Sum
+import me.vzhilin.gr.rules.Term
 import java.io.File
 import kotlin.test.Test
 

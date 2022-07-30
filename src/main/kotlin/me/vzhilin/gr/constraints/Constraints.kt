@@ -1,10 +1,50 @@
-package me.vzhilin.gr.next.constraints
+package me.vzhilin.gr.constraints
 
-import me.vzhilin.gr.Prod
-import me.vzhilin.gr.next.*
-import me.vzhilin.gr.next.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.constraints.exp.And
+import me.vzhilin.gr.constraints.exp.ColumnId
+import me.vzhilin.gr.constraints.exp.Const
+import me.vzhilin.gr.constraints.exp.Eq
+import me.vzhilin.gr.constraints.exp.Or
+import me.vzhilin.gr.constraints.exp.Exp
+import me.vzhilin.gr.constraints.exp.Ge
+import me.vzhilin.gr.constraints.exp.GroupId
+import me.vzhilin.gr.constraints.exp.Gt
+import me.vzhilin.gr.constraints.exp.Iff
+import me.vzhilin.gr.constraints.exp.Impl
+import me.vzhilin.gr.constraints.exp.Inc
+import me.vzhilin.gr.constraints.exp.Index
+import me.vzhilin.gr.constraints.exp.Le
+import me.vzhilin.gr.constraints.exp.Lt
+import me.vzhilin.gr.constraints.exp.NatExp
+import me.vzhilin.gr.constraints.exp.Neq
+import me.vzhilin.gr.constraints.exp.ProductionTypeId
+import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.constraints.exp.RowId
+import me.vzhilin.gr.constraints.exp.RuleId
+import me.vzhilin.gr.constraints.exp.SubGroupId
+import me.vzhilin.gr.constraints.exp.Zero
+import me.vzhilin.gr.model.Cell
+import me.vzhilin.gr.rules.Prod
 
-val BasicRanges = Constraints.Cell { cell ->
+typealias HorizontalHandler = Config.(left: Cell, right: Cell) -> Exp
+typealias VerticalHandler = Config.(upper: Cell, bottom: Cell) -> Exp
+typealias CellHandler = Config.(cell: Cell) -> Exp
+typealias ColumnHandler = Config.(column: Int, cells: List<Cell>) -> Exp
+typealias FirstColumnHandler = Config.(cell: Cell) -> Exp
+typealias RowHandler = Config.(row: Int, cells: List<Cell>) -> Exp
+typealias QuadHandler = Config.(left: Cell, right: Cell, bottomLeft: Cell, bottomRight: Cell) -> Exp
+
+sealed class Constraints {
+    data class FirstColumn(val handler: FirstColumnHandler): Constraints()
+    data class HorizontalPair(val handler: HorizontalHandler): Constraints()
+    data class VerticalPair(val handler: VerticalHandler): Constraints()
+    data class Quad(val handler: QuadHandler): Constraints()
+    data class Column(val handler: ColumnHandler): Constraints()
+    data class Row(val handler: RowHandler): Constraints()
+    data class Single(val handler: CellHandler): Constraints()
+}
+
+val BasicRanges = Constraints.Single { cell ->
     And(
         And(
             RowId(cell) eq Const(cell.row),
@@ -75,7 +115,7 @@ val SameRuleIdImplSameRuleType = Constraints.HorizontalPair { left, right ->
     )
 }
 
-val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Cell { cell ->
+val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Single { cell ->
     Impl(ProductionTypeId(cell) neq PROD, SubGroupId(cell) eq Zero)
 }
 
@@ -100,12 +140,12 @@ fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
     val rs = mutableListOf<Constraints>()
     rs.add(Constraints.Quad { left, right, bottomLeft, bottomRight ->
         val orExp = Or(args.zipWithNext().mapIndexed {
-            index, (lhs, rhs) -> And(
-                RuleId(bottomLeft) eq lhs,
-                RuleId(bottomRight) eq rhs,
-                SubGroupId(left) eq Const(index),
-                SubGroupId(right) eq Const(index + 1)
-            )
+                index, (lhs, rhs) -> And(
+            RuleId(bottomLeft) eq lhs,
+            RuleId(bottomRight) eq rhs,
+            SubGroupId(left) eq Const(index),
+            SubGroupId(right) eq Const(index + 1)
+        )
         })
         val cases = mutableListOf<Exp>()
 

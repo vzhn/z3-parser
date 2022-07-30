@@ -2,6 +2,8 @@ package me.vzhilin.gr
 
 import com.microsoft.z3.BoolExpr
 import com.microsoft.z3.Context
+import me.vzhilin.gr.rules.Grammar
+import me.vzhilin.gr.rules.Rule
 
 class GrammarAssertions(
     private val g: Grammar,
