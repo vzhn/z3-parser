@@ -91,6 +91,7 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, r
 }
 
 fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
+
     val args = r.args.map(grammar::resolve)
     val rs = mutableListOf<Constraints>()
     fun isProd(cell: Cell) = And(
@@ -98,28 +99,14 @@ fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
         ProductionTypeId(cell) eq PROD
     )
 
-    rs.add(Constraints.Quad { left, right, bottomLeft, bottomRight ->
-        args.zipWithNext().mapIndexed { index, (leftRule, rightRule) ->
-            val leftRuleId = grammar.id(leftRule)
-            val rightRuleId = grammar.id(rightRule)
-
-            Impl(
-                And(
-                    SubGroupId(left) eq Const(index),
-                    SubGroupId(right) eq Const(index + 1),
-                ),
-                And(
-                    RuleId(bottomLeft) eq Const(leftRuleId),
-                    RuleId(bottomRight) eq Const(rightRuleId)
-                )
-            )
-
+    rs.add(Constraints.VerticalPair { cell, bottom ->
+        if (cell.col == 0) {
+            TODO()
+        } else if (cell.col == last) {
+            TODO()
+        } else {
+            TODO()
         }
-    TODO()
-//        Impl(
-//            And(isProd(left), isProd(right), SubGroupId(left) neq SubGroupId(right)),
-//
-//        )
     })
 
     return rs
@@ -141,4 +128,11 @@ infix fun NatExp.le(rhs: NatExp): Exp {
     return Le(this, rhs)
 }
 
+infix fun NatExp.gt(rhs: NatExp): Exp {
+    return Gt(this, rhs)
+}
+
+infix fun NatExp.lt(rhs: NatExp): Exp {
+    return Lt(this, rhs)
+}
 

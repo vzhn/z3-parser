@@ -77,10 +77,18 @@ data class SubGroupId(override val cell: Cell): CellField() {
 data class Index(override val cell: Cell): CellField() {
     override fun toString() = "$cell.index"
 }
+data class Gt(val lhs: NatExp, val rhs: NatExp): Exp() {
+    override fun toString() = "$lhs > $rhs"
+}
 
 data class Ge(val lhs: NatExp, val rhs: NatExp): Exp() {
     override fun toString() = "$lhs >= $rhs"
 }
+
+data class Lt(val lhs: NatExp, val rhs: NatExp): Exp() {
+    override fun toString() = "$lhs < $rhs"
+}
+
 data class Le(val lhs: NatExp, val rhs: NatExp): Exp() {
     override fun toString() = "$lhs <= $rhs"
 }
@@ -113,6 +121,11 @@ data class And(val exps: List<Exp>): Exp() {
     constructor(vararg exps: Exp): this(exps.toList())
     override fun toString(): String {
         return exps.joinToString(" && ")
+    }
+}
+data class Not(val lhs: Exp): Exp() {
+    override fun toString(): String {
+        return "!$lhs"
     }
 }
 
