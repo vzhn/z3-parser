@@ -4,7 +4,13 @@ sealed class Symbol {
     abstract val rule: Rule
 }
 data class TerminalSymbol(val char: Char, override val rule: Term): Symbol()
-data class NonTerminalSymbol(override val rule: Rule, val text: String): Symbol()
+data class NonTerminalSymbol(override val rule: Rule, val text: String): Symbol() {
+    init {
+        if (text.isBlank()) {
+            throw IllegalStateException("Blank rule: '$text'")
+        }
+    }
+}
 data class DerivationStep(
     val input: List<Symbol>,
     val substitution: Rule,
@@ -43,7 +49,8 @@ private fun Grammar.parseMiddle(input: String): Pair<Rule, IntRange> {
 }
 
 private fun Grammar.parseSymbols(input: String): List<Symbol> {
-    return input.split(' ').map { word ->
+    val inp = input.split(Regex("\\s+"))
+    return inp.map { word ->
         if (word.length == 1) {
             val char = word[0]
             TerminalSymbol(char, terms.first { it.value == char })

@@ -13,48 +13,57 @@ import me.vzhilin.gr.rules.TerminalSymbol
 import me.vzhilin.gr.rules.parseDerivation
 import me.vzhilin.gr.simpleGrammar
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class DerivationValidationTests {
-    private val input = """
-        λ . x x λ . y y                         # X(2)          # λ . X(x) x λ . y y
-        λ . X(x) x λ . y y                      # X(3)          # λ . X(x) X(x) λ . y y
-        λ . X(x) X(x) λ . y y                   # Y(6)          # λ . X(x) X(x) λ . Y(y) y
-        λ . X(x) X(x) λ . Y(y) y                # Y(7)          # λ . X(x) X(x) λ . Y(y) Y(y)
-        λ . X(x) X(x) λ . Y(y) Y(y)             # APP(6:7)      # λ . X(x) X(x) λ . APP(yy)
-        λ . X(x) X(x) λ . APP(yy)               # T(6)          # λ . X(x) X(x) λ . T(yy)
-        λ . X(x) X(x) λ . T(yy)                 # LAMBDA(4)     # λ . X(x) X(x) LAMBDA(λ) . T(yy)
-        λ . X(x) X(x) LAMBDA(λ) . T(yy)         # DOT(5)        # λ . X(x) X(x) LAMBDA(λ) DOT(.) T(yy)
-        λ . X(x) X(x) LAMBDA(λ) DOT(.) T(yy)    # ABST(4:6)     # λ . X(x) X(x) ABST(λ.yy) 
-        λ . X(x) X(x) ABST(λ.yy)                # LAMBDA(0)     # LAMBDA(λ) . X(x) X(x) ABST(λ.yy) 
-        LAMBDA(λ) . X(x) X(x) ABST(λ.yy)        # DOT(1)        # LAMBDA(λ) DOT(.) X(x) X(x) ABST(λ.yy)
-        LAMBDA(λ) DOT(.) X(x) X(x) ABST(λ.yy)   # ABST(0:2)     # ABST(λ.x) X(x) ABST(λ.yy)
-        ABST(λ.x) X(x) ABST(λ.yy)               # T(0)          # T(λ.x) X(x) ABST(λ.yy)
-        T(λ.x) X(x) ABST(λ.yy)                  # V(1)          # T(λ.x) V(x) ABST(λ.yy)
-        T(λ.x) V(x) ABST(λ.yy)                  # T(1)          # T(λ.x) T(x) ABST(λ.yy)
-        T(λ.x) T(x) ABST(λ.yy)                  # APP(0:1)      # APP(λ.xx) ABST(λ.yy)
-        APP(λ.xx) ABST(λ.yy)                    # T(0)          # T(λ.xx) ABST(λ.yy)
-        T(λ.xx) ABST(λ.yy)                      # T(1)          # T(λ.xx) T(λ.yy)
-        T(λ.xx) T(λ.yy)                         # APP(0:1)      # APP(λ.xxλ.yy)
-        APP(λ.xxλ.yy)                           # T(0)          # T(λ.xxλ.yy)
+    private val input =
+"""     λ    x . x    λ    y . y      y  #  X(1)                       # λ X(x) . x    λ    y . y      y 
+        λ X(x) . x    λ    y . y      y  #  Y(5)                       # λ X(x) . X(x) λ Y(y) . y      y 
+        λ X(x) . X(x) λ Y(y) . y      y  #  Y(7)                       # λ X(x) . X(x) λ Y(y) . Y(y)   y 
+        λ X(x) . X(x) λ Y(y) . Y(y)   y  #  Y(8)                       # λ X(x) . X(x) λ Y(y) . Y(y) Y(y)
+        λ X(x) . X(x) λ Y(y) . Y(y) Y(y) #  V(3)                       # λ X(x) . V(x) λ Y(y) . Y(y) Y(y)
+        λ X(x) . V(x) λ Y(y) . Y(y) Y(y) #  T(3)                       # λ X(x) . T(x) λ Y(y) . Y(y) Y(y)
+        λ X(x) . T(x) λ Y(y) . Y(y) Y(y) #  V(1)                       # λ V(x) . T(x) λ Y(y) . Y(y) Y(y)
+        λ V(x) . T(x) λ Y(y) . Y(y) Y(y) #  ABST(0:3)                  # ABST(λx.x)    λ Y(y) . Y(y) Y(y)
+        ABST(λx.x)    λ Y(y) . Y(y) Y(y) #  V(2)                       # ABST(λx.x)    λ V(y) . Y(y) Y(y)
+        ABST(λx.x)    λ V(y) . Y(y) Y(y) #  V(4)                       # ABST(λx.x)    λ V(y) . V(y) Y(y)
+        ABST(λx.x)    λ V(y) . V(y) Y(y) #  T(4)                       # ABST(λx.x)    λ V(y) . T(y) Y(y)
+        ABST(λx.x)    λ V(y) . T(y) Y(y) #  ABST(1:4)                  # ABST(λx.x)    ABST(λy.y)    Y(y)
+        ABST(λx.x)    ABST(λy.y)    Y(y) #  T(0)                       # T(λx.x)       ABST(λy.y)    Y(y)
+        T(λx.x)       ABST(λy.y)    Y(y) #  T(1)                       # T(λx.x)       T(λy.y)       Y(y)
+        T(λx.x)       T(λy.y)       Y(y) #  APP(0:1)                   # APP(λx.xλy.y)               Y(y)
+        APP(λx.xλy.y)               Y(y) #  T(0)                       # T(λx.xλy.y)                 Y(y)
+        T(λx.xλy.y)                 Y(y) #  T(1)                       # T(λx.xλy.y)                 T(y)
+        T(λx.xλy.y)                 T(y) #  APP(0:1)                   # APP(λx.xλy.yy)                  
+        APP(λx.xλy.yy)                   #  T(0)                       # T(λx.xλy.yy)
     """.trimIndent()
 
     @Test
     fun test() {
         val g = simpleGrammar()
         val derivation = g.parseDerivation(input)
-        assert(derivation.validate(g))
+
+        assertEquals(Ok, DerivationValidator(g).validate(derivation))
     }
 }
 
 sealed class DerivationValidationResult
-object Ok: DerivationValidationResult()
+object Ok: DerivationValidationResult() {
+    override fun toString() = "OK"
+}
 data class UnexpectedNonTerm(val nt: NonTerminalSymbol): DerivationValidationResult()
 data class UnexpectedNonTermRule(val nt: Rule): DerivationValidationResult()
 data class LastProductionShouldHaveOneNt(val n: Int): DerivationValidationResult()
 data class UnexpectedTerm(val t: TerminalSymbol): DerivationValidationResult()
-data class UnexpectedTermRule(val t: Term): DerivationValidationResult()
+data class UnexpectedTermRule(val lineNumber: Int, val t: Term): DerivationValidationResult()
 data class UnexpectedRefRule(val ref: Ref): DerivationValidationResult()
-data class BadChaining(val prev: List<Symbol>, val next: List<Symbol>): DerivationValidationResult()
+data class BadChaining(
+    val badChainedIndex: Int,
+    val symbolIndex: Int,
+    val left: Symbol,
+    val right: Symbol
+) : DerivationValidationResult()
+data class SizeNotMatched(val lineNumber: Int): DerivationValidationResult()
 data class BadStep(val left: List<Symbol>, val right: List<Symbol>): DerivationValidationResult()
 data class BadProdReplacement(val rule: Prod, val symbols: List<Symbol>):DerivationValidationResult()
 data class ImproperProdSymbol(val rule: Prod, val expected: Rule, val got: Rule): DerivationValidationResult()
@@ -70,7 +79,7 @@ class DerivationValidator(val g: Grammar) {
     fun validate(steps: List<DerivationStep>): DerivationValidationResult {
         return result(listOf(
             firstRuleIsTermOnly(steps.first()),
-            lastRuleIsNonTerm(steps.last()),
+            lastRuleIsNonTerm(steps.last(), steps.lastIndex),
             stepsAreChainedProperly(steps),
             checkIndividualSteps(steps)
         ))
@@ -89,7 +98,7 @@ class DerivationValidator(val g: Grammar) {
         return Ok
     }
 
-    private fun lastRuleIsNonTerm(s: DerivationStep): DerivationValidationResult {
+    private fun lastRuleIsNonTerm(s: DerivationStep, lineNumber: Int): DerivationValidationResult {
         if (s.result.size != 1) {
             return LastProductionShouldHaveOneNt(s.result.size)
         }
@@ -99,7 +108,7 @@ class DerivationValidator(val g: Grammar) {
         }
         val lastRule = lastSymbol.rule
         if (lastRule is Term) {
-            return UnexpectedTermRule(lastRule)
+            return UnexpectedTermRule(lineNumber, lastRule)
         }
         if (lastRule is Ref) {
             return UnexpectedRefRule(lastRule)
@@ -108,23 +117,38 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun stepsAreChainedProperly(steps: List<DerivationStep>): DerivationValidationResult {
-        val notMatched = steps.zipWithNext { lhs, rhs ->
+        val indexOfNotMatchedSize = steps.zipWithNext { lhs, rhs ->
             lhs.result to rhs.input
-        }.firstOrNull {  (lhs, rhs) ->
+        }.indexOfFirst { (lhs, rhs) ->
+            lhs.size != rhs.size
+        }
+
+        if (indexOfNotMatchedSize != -1) {
+            return SizeNotMatched(indexOfNotMatchedSize)
+        }
+
+        val badStep = steps.zipWithNext { lhs, rhs ->
+            lhs.result to rhs.input
+        }.indexOfFirst { (lhs, rhs) ->
             lhs != rhs
         }
-        if (notMatched != null) {
-            return BadChaining(notMatched.first, notMatched.second)
+
+        if (badStep != -1) {
+            val step = steps[badStep]
+            val pairs = step.input.zip(step.result)
+            val badPosition = pairs.indexOfFirst { (lhs, rhs) -> lhs != rhs }
+            val (left, right) = pairs[badPosition]
+            return BadChaining(badStep, badPosition, left, right)
         }
         return Ok
     }
 
     private fun checkIndividualSteps(steps: List<DerivationStep>): DerivationValidationResult {
-        return result(steps.flatMap { s ->
+        return result(steps.flatMapIndexed { index, s ->
             val (left, rule, range, right) = s
             listOf(
                 checkLeftRightHasSameSymbols(left, right),
-                checkReplacement(left, rule, range, right)
+                checkReplacement(left, rule, range, right, index)
             )
         })
     }
@@ -140,27 +164,29 @@ class DerivationValidator(val g: Grammar) {
         left: List<Symbol>,
         rule: Rule,
         range: IntRange,
-        right: List<Symbol>
+        right: List<Symbol>,
+        lineNumber: Int
     ): DerivationValidationResult {
-        val symbols = left.filterIndexed { index, _ ->  range.contains(index) }
         return when (rule) {
             is Prod -> {
-                checkProdDerivation(symbols, rule, range, right)
+                checkProdDerivation(left, rule, range, right)
             }
             is Sum -> {
-                checkSumDerivation(symbols, rule, range, right)
+                checkSumDerivation(left, rule, range, right)
             }
             is Ref -> UnexpectedRefRule(rule)
-            is Term -> UnexpectedTermRule(rule)
+            is Term -> UnexpectedTermRule(lineNumber, rule)
         }
     }
 
     private fun checkProdDerivation(
-        symbols: List<Symbol>,
+        left: List<Symbol>,
         rule: Prod,
         range: IntRange,
         right: List<Symbol>
     ): DerivationValidationResult {
+        val symbols = left.subList(range.first, range.last + 1)
+
         // 1: number of symbols == number of prod sub-rules
         if (symbols.size != rule.args.size) {
             return BadProdReplacement(rule, symbols)
@@ -177,7 +203,7 @@ class DerivationValidator(val g: Grammar) {
 
         // 3: replacing ..., S1, ..., SN, ...
         //              ..., rule       , ...
-        val replaced = symbols.replaceBy(rule, range)
+        val replaced = left.replaceBy(rule, range)
         if (right != replaced) {
             return ImproperProdDerivation(right, replaced)
         }
@@ -185,23 +211,25 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun checkSumDerivation(
-        symbols: List<Symbol>,
+        left: List<Symbol>,
         rule: Sum,
         range: IntRange,
         right: List<Symbol>
     ): DerivationValidationResult {
+        val symbols = left.subList(range.first, range.last + 1)
         // 1. check that range has only one symbol
-        if (range.last != range.first) {
+        if (range.last != range.first || symbols.size != 1) {
             return BadSumDerivationRange(range)
         }
-        val symbol = symbols[range.first]
+
+        val symbol = symbols.first()
 
         // 2. check that sum has option == rule
         val option = rule.args.map { g.resolve(it) }.firstOrNull { it == symbol.rule }
             ?: return SumComponentWasNotFound(rule, symbol.rule)
 
         // 3. replacing option to rule
-        val replaced = symbols.replaceBy(rule, range)
+        val replaced = left.replaceBy(rule, range)
         if (right != replaced) {
             return ImproperProdDerivation(right, replaced)
         }
@@ -227,8 +255,4 @@ class DerivationValidator(val g: Grammar) {
 
         return list
     }
-}
-fun List<DerivationStep>.validate(g: Grammar): Boolean {
-
-    TODO()
 }
