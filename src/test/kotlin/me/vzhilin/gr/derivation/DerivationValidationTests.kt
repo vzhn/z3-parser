@@ -17,7 +17,7 @@ import kotlin.test.assertEquals
 
 class DerivationValidationTests {
     private val input =
-"""     λ X(x) . X(x) λ Y(y) . Y(y) Y(y) #  V(3)                       # λ X(x) . V(x) λ Y(y) . Y(y) Y(y)
+"""     λ x . x λ y . y y                #  V(3)                       # λ x . V(x) λ y . y y
         λ X(x) . V(x) λ Y(y) . Y(y) Y(y) #  T(3)                       # λ X(x) . T(x) λ Y(y) . Y(y) Y(y)
         λ X(x) . T(x) λ Y(y) . Y(y) Y(y) #  V(1)                       # λ V(x) . T(x) λ Y(y) . Y(y) Y(y)
         λ V(x) . T(x) λ Y(y) . Y(y) Y(y) #  ABST(0:3)                  # ABST(λx.x)    λ Y(y) . Y(y) Y(y)

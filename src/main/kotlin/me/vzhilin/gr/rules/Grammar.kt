@@ -19,8 +19,8 @@ class Grammar(vararg val allRules: Rule) {
     }
 
     fun resolve(ref: Ref): Rule {
-        val name = ref.name
-        return allRules.firstOrNull { it !is Ref && it.name == name } ?:
+        val name = ref.nonTermName
+        return allRules.firstOrNull { it.name == name } ?:
             throw IllegalArgumentException("Rule not found: '$name'")
     }
 

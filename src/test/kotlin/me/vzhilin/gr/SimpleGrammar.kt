@@ -6,12 +6,12 @@ import me.vzhilin.gr.rules.Sum
 import me.vzhilin.gr.rules.Term
 
 fun simpleGrammar(): Grammar {
-    val x = Term("X", 'x')
-    val y = Term("Y", 'y')
-    val a = Term("A", 'a')
-    val b = Term("B", 'b')
-    val dot = Term("DOT", '.')
-    val lambda = Term("LAMBDA", 'λ')
+    val x = Term('x')
+    val y = Term('y')
+    val a = Term('a')
+    val b = Term('b')
+    val dot = Term('.')
+    val lambda = Term('λ')
 
     /* T = V | APP | ABST */
     val t = Sum("T", "V", "APP", "ABST")
@@ -25,5 +25,5 @@ fun simpleGrammar(): Grammar {
     /* ABST = λV.T */
     val abst = Prod("ABST", "LAMBDA", "V", "DOT", "T")
 
-    return Grammar(x, y, a, b, dot, lambda, t, v, app, abst)
+    return Grammar(t, v, app, abst)
 }

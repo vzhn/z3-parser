@@ -6,7 +6,9 @@ sealed class Rule {
     abstract val name: String
 }
 
-data class Sum(override val name: String, val args: List<Ref>): Rule() {
+sealed class Atom
+
+data class Sum(override val name: String, val args: List<Atom>): Rule() {
     init {
         if (args.size < 2) throw IllegalStateException()
     }
@@ -17,7 +19,7 @@ data class Sum(override val name: String, val args: List<Ref>): Rule() {
     }
 }
 
-data class Prod(override val name: String, val args: List<Ref>): Rule() {
+data class Prod(override val name: String, val args: List<Atom>): Rule() {
     init {
         if (args.size < 2) throw IllegalStateException()
     }
@@ -28,14 +30,15 @@ data class Prod(override val name: String, val args: List<Ref>): Rule() {
     }
 }
 
-data class Term(override val name: String, val value: Char): Rule() {
+data class Term(val value: Char): Atom() {
     override fun toString(): String {
-        return "$name → '$value'"
+        return "'$value'"
     }
 }
 
-data class Ref(override val name: String): Rule() {
-    override fun toString(): String {
-        return name
-    }
-}
+// TODO get rid from Ref
+//data class Ref(val nonTermName: String): Atom() {
+//    override fun toString(): String {
+//        return nonTermName
+//    }
+//}
