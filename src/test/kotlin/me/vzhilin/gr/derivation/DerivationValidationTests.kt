@@ -17,11 +17,7 @@ import kotlin.test.assertEquals
 
 class DerivationValidationTests {
     private val input =
-"""     λ    x . x    λ    y . y      y  #  X(1)                       # λ X(x) . x    λ    y . y      y 
-        λ X(x) . x    λ    y . y      y  #  Y(5)                       # λ X(x) . X(x) λ Y(y) . y      y 
-        λ X(x) . X(x) λ Y(y) . y      y  #  Y(7)                       # λ X(x) . X(x) λ Y(y) . Y(y)   y 
-        λ X(x) . X(x) λ Y(y) . Y(y)   y  #  Y(8)                       # λ X(x) . X(x) λ Y(y) . Y(y) Y(y)
-        λ X(x) . X(x) λ Y(y) . Y(y) Y(y) #  V(3)                       # λ X(x) . V(x) λ Y(y) . Y(y) Y(y)
+"""     λ X(x) . X(x) λ Y(y) . Y(y) Y(y) #  V(3)                       # λ X(x) . V(x) λ Y(y) . Y(y) Y(y)
         λ X(x) . V(x) λ Y(y) . Y(y) Y(y) #  T(3)                       # λ X(x) . T(x) λ Y(y) . Y(y) Y(y)
         λ X(x) . T(x) λ Y(y) . Y(y) Y(y) #  V(1)                       # λ V(x) . T(x) λ Y(y) . Y(y) Y(y)
         λ V(x) . T(x) λ Y(y) . Y(y) Y(y) #  ABST(0:3)                  # ABST(λx.x)    λ Y(y) . Y(y) Y(y)
@@ -33,7 +29,8 @@ class DerivationValidationTests {
         T(λx.x)       ABST(λy.y)    Y(y) #  T(1)                       # T(λx.x)       T(λy.y)       Y(y)
         T(λx.x)       T(λy.y)       Y(y) #  APP(0:1)                   # APP(λx.xλy.y)               Y(y)
         APP(λx.xλy.y)               Y(y) #  T(0)                       # T(λx.xλy.y)                 Y(y)
-        T(λx.xλy.y)                 Y(y) #  T(1)                       # T(λx.xλy.y)                 T(y)
+        T(λx.xλy.y)                 Y(y) #  V(1)                       # T(λx.xλy.y)                 V(y)
+        T(λx.xλy.y)                 V(y) #  T(1)                       # T(λx.xλy.y)                 T(y)
         T(λx.xλy.y)                 T(y) #  APP(0:1)                   # APP(λx.xλy.yy)                  
         APP(λx.xλy.yy)                   #  T(0)                       # T(λx.xλy.yy)
     """.trimIndent()
@@ -69,7 +66,7 @@ data class BadProdReplacement(val rule: Prod, val symbols: List<Symbol>):Derivat
 data class ImproperProdSymbol(val rule: Prod, val expected: Rule, val got: Rule): DerivationValidationResult()
 data class ImproperProdDerivation(val expected: List<Symbol>, val got: List<Symbol>):DerivationValidationResult()
 data class BadSumDerivationRange(val ir: IntRange): DerivationValidationResult()
-data class SumComponentWasNotFound(val sum: Sum, val probe: Rule): DerivationValidationResult()
+data class SumComponentWasNotFound(val lineNumber: Int, val sum: Sum, val probe: Rule): DerivationValidationResult()
 
 class DerivationValidator(val g: Grammar) {
     private fun result(rs: List<DerivationValidationResult>): DerivationValidationResult {
@@ -86,7 +83,7 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun firstRuleIsTermOnly(s: DerivationStep): DerivationValidationResult {
-        val nonTerminal = s.input.firstOrNull { it is NonTerminalSymbol } as NonTerminalSymbol?
+        val nonTerminal = s.input.firstOrNull { it.rule !is Term } as NonTerminalSymbol?
         if (nonTerminal != null) {
             return UnexpectedNonTerm(nonTerminal)
         }
@@ -169,10 +166,10 @@ class DerivationValidator(val g: Grammar) {
     ): DerivationValidationResult {
         return when (rule) {
             is Prod -> {
-                checkProdDerivation(left, rule, range, right)
+                checkProdDerivation(lineNumber, left, rule, range, right)
             }
             is Sum -> {
-                checkSumDerivation(left, rule, range, right)
+                checkSumDerivation(lineNumber, left, rule, range, right)
             }
             is Ref -> UnexpectedRefRule(rule)
             is Term -> UnexpectedTermRule(lineNumber, rule)
@@ -180,6 +177,7 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun checkProdDerivation(
+        lineNumber: Int,
         left: List<Symbol>,
         rule: Prod,
         range: IntRange,
@@ -211,6 +209,7 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun checkSumDerivation(
+        lineNumber: Int,
         left: List<Symbol>,
         rule: Sum,
         range: IntRange,
@@ -226,7 +225,7 @@ class DerivationValidator(val g: Grammar) {
 
         // 2. check that sum has option == rule
         val option = rule.args.map { g.resolve(it) }.firstOrNull { it == symbol.rule }
-            ?: return SumComponentWasNotFound(rule, symbol.rule)
+            ?: return SumComponentWasNotFound(lineNumber, rule, symbol.rule)
 
         // 3. replacing option to rule
         val replaced = left.replaceBy(rule, range)
