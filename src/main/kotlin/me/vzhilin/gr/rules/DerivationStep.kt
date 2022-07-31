@@ -5,7 +5,12 @@ sealed class Symbol {
 }
 data class TerminalSymbol(val char: Char, override val rule: Term): Symbol()
 data class NonTerminalSymbol(override val rule: Rule, val text: String): Symbol()
-data class DerivationStep(val s1: List<Symbol>, val r: Rule, val range: IntRange, val s2: List<Symbol>)
+data class DerivationStep(
+    val input: List<Symbol>,
+    val substitution: Rule,
+    val range: IntRange,
+    val result: List<Symbol>
+)
 
 // a b         # V(0)     # V(a) b
 // V(a) b      # V(1)     # V(a) V(b)
