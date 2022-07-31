@@ -1,6 +1,6 @@
 package me.vzhilin.gr.report
 
-import me.vzhilin.gr.Cell
+import me.vzhilin.gr.model.Cell
 import me.vzhilin.gr.rules.Grammar
 import java.io.File
 import java.io.PrintWriter
@@ -40,7 +40,7 @@ fun buildContainer(
             val rule = g.rule(ruleId)
             Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", groupData.map { (subGroupId, cells) ->
                 Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", cells.map { cell ->
-                    Container(ContainerType.CELL, "#${cell.id}", input[cell.col].toString(), emptyList())
+                    Container(ContainerType.CELL, "#${cell.row},${cell.col}", input[cell.col].toString(), emptyList())
                 })
             })
         }).also {
