@@ -1,8 +1,8 @@
 package me.vzhilin.gr.derivation
 
 import me.vzhilin.gr.rules.DerivationStep
-import me.vzhilin.gr.rules.NonTerminalSymbol
-import me.vzhilin.gr.rules.TerminalSymbol
+import me.vzhilin.gr.rules.NonTerminalDerivation
+import me.vzhilin.gr.rules.TerminalDerivation
 import me.vzhilin.gr.rules.parseDerivation
 import me.vzhilin.gr.simpleGrammar
 import kotlin.test.Test
@@ -23,14 +23,14 @@ class DerivationParserTests {
         val expected = listOf(
             DerivationStep(
                 listOf(
-                    TerminalSymbol('a', g.termFor('a')),
-                    TerminalSymbol('b', g.termFor('b'))
+                    TerminalDerivation(g.getTerm('a')),
+                    TerminalDerivation(g.getTerm('b'))
                 ),
-                g.find("A"),
+                g.get("A"),
                 0..0,
                 listOf(
-                    NonTerminalSymbol(g.find("A"), "a"),
-                    TerminalSymbol('b', g.termFor('b'))
+                    NonTerminalDerivation(g.get("A"), "a"),
+                    TerminalDerivation(g.getTerm('b'))
                 )
             )
         )

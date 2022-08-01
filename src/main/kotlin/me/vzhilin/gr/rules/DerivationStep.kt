@@ -1,21 +1,21 @@
 package me.vzhilin.gr.rules
 
-sealed class Symbol {
+sealed class DerivationSymbol {
     abstract val rule: Rule
 }
-data class TerminalSymbol(val char: Char, override val rule: Term): Symbol()
-data class NonTerminalSymbol(override val rule: Rule, val text: String): Symbol() {
+data class TerminalDerivation(override val rule: Term): DerivationSymbol()
+data class NonTerminalDerivation(override val rule: Rule, val word: String): DerivationSymbol() {
     init {
-        if (text.isBlank()) {
-            throw IllegalStateException("Blank rule: '$text'")
+        if (word.isEmpty()) {
+            throw IllegalStateException("Blank rule: '$rule'")
         }
     }
 }
 data class DerivationStep(
-    val input: List<Symbol>,
+    val input: List<DerivationSymbol>,
     val substitution: Rule,
     val range: IntRange,
-    val result: List<Symbol>
+    val result: List<DerivationSymbol>
 )
 
 // a b         # V(0)     # V(a) b
@@ -45,23 +45,22 @@ private fun Grammar.parseMiddle(input: String): Pair<Rule, IntRange> {
         val a = range.toInt()
         a..a
     }
-    return allRules.first { it.name == name } to r
+    return get(name) to r
 }
 
-private fun Grammar.parseSymbols(input: String): List<Symbol> {
+private fun Grammar.parseSymbols(input: String): List<DerivationSymbol> {
     val inp = input.split(Regex("\\s+"))
     return inp.map { word ->
         if (word.length == 1) {
             val char = word[0]
-            TerminalSymbol(char, terms.first { it.value == char })
+            TerminalDerivation(getTerm(char))
         } else {
             val p1 = word.indexOf('(')
             val p2 = word.indexOf(')')
             val chars = word.substring(p1 + 1, p2)
             val name = word.substring(0, p1)
-            val rule = allRules.firstOrNull { it.name == name }
-                ?: throw IllegalArgumentException("not found: '$name")
-            NonTerminalSymbol(rule, chars)
+            val rule = get(name)
+            NonTerminalDerivation(rule, chars)
         }
     }
 }

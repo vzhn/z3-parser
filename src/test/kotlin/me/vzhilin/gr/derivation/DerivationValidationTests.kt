@@ -1,17 +1,19 @@
 package me.vzhilin.gr.derivation
 
 import me.vzhilin.gr.rules.DerivationStep
+import me.vzhilin.gr.rules.DerivationSymbol
 import me.vzhilin.gr.rules.Grammar
-import me.vzhilin.gr.rules.NonTerminalSymbol
+import me.vzhilin.gr.rules.NonTerm
+import me.vzhilin.gr.rules.NonTerminalDerivation
 import me.vzhilin.gr.rules.Prod
-import me.vzhilin.gr.rules.Ref
-import me.vzhilin.gr.rules.Rule
 import me.vzhilin.gr.rules.Sum
-import me.vzhilin.gr.rules.Symbol
+import me.vzhilin.gr.rules.Rule
 import me.vzhilin.gr.rules.Term
-import me.vzhilin.gr.rules.TerminalSymbol
+import me.vzhilin.gr.rules.TerminalDerivation
 import me.vzhilin.gr.rules.parseDerivation
 import me.vzhilin.gr.simpleGrammar
+import java.sql.Ref
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -48,23 +50,23 @@ sealed class DerivationValidationResult
 object Ok: DerivationValidationResult() {
     override fun toString() = "OK"
 }
-data class UnexpectedNonTerm(val nt: NonTerminalSymbol): DerivationValidationResult()
-data class UnexpectedNonTermRule(val nt: Rule): DerivationValidationResult()
+data class UnexpectedNonTerm(val nt: NonTerminalDerivation): DerivationValidationResult()
+data class UnexpectedNonTermRule(val nt: NonTerm): DerivationValidationResult()
 data class LastProductionShouldHaveOneNt(val n: Int): DerivationValidationResult()
-data class UnexpectedTerm(val t: TerminalSymbol): DerivationValidationResult()
+data class UnexpectedTerm(val lineNumber: Int, val t: TerminalDerivation): DerivationValidationResult()
 data class UnexpectedTermRule(val lineNumber: Int, val t: Term): DerivationValidationResult()
 data class UnexpectedRefRule(val ref: Ref): DerivationValidationResult()
 data class BadChaining(
     val badChainedIndex: Int,
     val symbolIndex: Int,
-    val left: Symbol,
-    val right: Symbol
+    val left: DerivationSymbol,
+    val right: DerivationSymbol
 ) : DerivationValidationResult()
 data class SizeNotMatched(val lineNumber: Int): DerivationValidationResult()
-data class BadStep(val left: List<Symbol>, val right: List<Symbol>): DerivationValidationResult()
-data class BadProdReplacement(val rule: Prod, val symbols: List<Symbol>):DerivationValidationResult()
+data class BadStep(val left: List<DerivationSymbol>, val right: List<DerivationSymbol>): DerivationValidationResult()
+data class BadProdReplacement(val rule: Prod, val symbols: List<DerivationSymbol>):DerivationValidationResult()
 data class ImproperProdSymbol(val rule: Prod, val expected: Rule, val got: Rule): DerivationValidationResult()
-data class ImproperProdDerivation(val expected: List<Symbol>, val got: List<Symbol>):DerivationValidationResult()
+data class ImproperProdDerivation(val expected: List<DerivationSymbol>, val got: List<DerivationSymbol>):DerivationValidationResult()
 data class BadSumDerivationRange(val ir: IntRange): DerivationValidationResult()
 data class SumComponentWasNotFound(val lineNumber: Int, val sum: Sum, val probe: Rule): DerivationValidationResult()
 
@@ -83,14 +85,9 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun firstRuleIsTermOnly(s: DerivationStep): DerivationValidationResult {
-        val nonTerminal = s.input.firstOrNull { it.rule !is Term } as NonTerminalSymbol?
-        if (nonTerminal != null) {
-            return UnexpectedNonTerm(nonTerminal)
-        }
-
-        val nonTerminalRule = s.input.map(Symbol::rule).firstOrNull{ it !is Term }
-        if (nonTerminalRule != null) {
-            return UnexpectedNonTermRule(nonTerminalRule)
+        val nonTerminal = s.input.filterIsInstance<NonTerminalDerivation>()
+        if (nonTerminal.isNotEmpty()) {
+            return UnexpectedNonTerm(nonTerminal[0])
         }
         return Ok
     }
@@ -100,15 +97,8 @@ class DerivationValidator(val g: Grammar) {
             return LastProductionShouldHaveOneNt(s.result.size)
         }
         val lastSymbol = s.result.first()
-        if (lastSymbol is TerminalSymbol) {
-            return UnexpectedTerm(lastSymbol)
-        }
-        val lastRule = lastSymbol.rule
-        if (lastRule is Term) {
-            return UnexpectedTermRule(lineNumber, lastRule)
-        }
-        if (lastRule is Ref) {
-            return UnexpectedRefRule(lastRule)
+        if (lastSymbol is TerminalDerivation) {
+            return UnexpectedTerm(lineNumber, lastSymbol)
         }
         return Ok
     }
@@ -150,7 +140,7 @@ class DerivationValidator(val g: Grammar) {
         })
     }
 
-    private fun checkLeftRightHasSameSymbols(left: List<Symbol>, right: List<Symbol>): DerivationValidationResult {
+    private fun checkLeftRightHasSameSymbols(left: List<DerivationSymbol>, right: List<DerivationSymbol>): DerivationValidationResult {
         if (getText(left) != getText(right)) {
             return BadStep(left, right)
         }
@@ -158,10 +148,10 @@ class DerivationValidator(val g: Grammar) {
     }
 
     private fun checkReplacement(
-        left: List<Symbol>,
+        left: List<DerivationSymbol>,
         rule: Rule,
         range: IntRange,
-        right: List<Symbol>,
+        right: List<DerivationSymbol>,
         lineNumber: Int
     ): DerivationValidationResult {
         return when (rule) {
@@ -178,21 +168,21 @@ class DerivationValidator(val g: Grammar) {
 
     private fun checkProdDerivation(
         lineNumber: Int,
-        left: List<Symbol>,
+        left: List<DerivationSymbol>,
         rule: Prod,
         range: IntRange,
-        right: List<Symbol>
+        right: List<DerivationSymbol>
     ): DerivationValidationResult {
         val symbols = left.subList(range.first, range.last + 1)
 
         // 1: number of symbols == number of prod sub-rules
-        if (symbols.size != rule.args.size) {
+        if (symbols.size != rule.components.size) {
             return BadProdReplacement(rule, symbols)
         }
 
         // 2: each of symbol's rule is matching prod sub-rule
         // symbol.rule = prod.args[symbol.index]
-        val notMatched = symbols.zip(rule.args.map(g::resolve)).firstOrNull { (symbol, rule) ->
+        val notMatched = symbols.zip(rule.components).firstOrNull { (symbol, rule) ->
             symbol.rule != rule
         }
         if (notMatched != null) {
@@ -210,10 +200,10 @@ class DerivationValidator(val g: Grammar) {
 
     private fun checkSumDerivation(
         lineNumber: Int,
-        left: List<Symbol>,
+        left: List<DerivationSymbol>,
         rule: Sum,
         range: IntRange,
-        right: List<Symbol>
+        right: List<DerivationSymbol>
     ): DerivationValidationResult {
         val symbols = left.subList(range.first, range.last + 1)
         // 1. check that range has only one symbol
@@ -221,11 +211,11 @@ class DerivationValidator(val g: Grammar) {
             return BadSumDerivationRange(range)
         }
 
-        val symbol = symbols.first()
+        val ds = symbols.first()
 
         // 2. check that sum has option == rule
-        val option = rule.args.map { g.resolve(it) }.firstOrNull { it == symbol.rule }
-            ?: return SumComponentWasNotFound(lineNumber, rule, symbol.rule)
+        val option = rule.components.firstOrNull { it == ds.rule }
+            ?: return SumComponentWasNotFound(lineNumber, rule, ds.rule)
 
         // 3. replacing option to rule
         val replaced = left.replaceBy(rule, range)
@@ -235,19 +225,19 @@ class DerivationValidator(val g: Grammar) {
         return Ok
     }
 
-    private fun getText(symbols: List<Symbol>): String {
+    private fun getText(symbols: List<DerivationSymbol>): String {
         return symbols.joinToString("") {
             when (it) {
-                is NonTerminalSymbol -> it.text
-                is TerminalSymbol ->  it.char.toString()
+                is NonTerminalDerivation -> it.word
+                is TerminalDerivation ->  it.rule.ch.toString()
             }
         }
     }
 
-    private fun List<Symbol>.replaceBy(rule: Rule, range: IntRange): List<Symbol> {
+    private fun List<DerivationSymbol>.replaceBy(rule: NonTerm, range: IntRange): List<DerivationSymbol> {
         val symbols = filterIndexed { index, _ -> range.contains(index) }
         val removed = filterIndexed { index, _ -> !range.contains(index) }
-        val newRule = NonTerminalSymbol(rule, getText(symbols))
+        val newRule = NonTerminalDerivation(rule, getText(symbols))
 
         val list = removed.toMutableList()
         list.add(range.first, newRule)

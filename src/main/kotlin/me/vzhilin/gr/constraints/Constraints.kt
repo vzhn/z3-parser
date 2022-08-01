@@ -6,17 +6,11 @@ import me.vzhilin.gr.constraints.exp.Const
 import me.vzhilin.gr.constraints.exp.Eq
 import me.vzhilin.gr.constraints.exp.Or
 import me.vzhilin.gr.constraints.exp.Exp
-import me.vzhilin.gr.constraints.exp.Ge
 import me.vzhilin.gr.constraints.exp.GroupId
-import me.vzhilin.gr.constraints.exp.Gt
 import me.vzhilin.gr.constraints.exp.Iff
 import me.vzhilin.gr.constraints.exp.Impl
 import me.vzhilin.gr.constraints.exp.Inc
 import me.vzhilin.gr.constraints.exp.Index
-import me.vzhilin.gr.constraints.exp.Le
-import me.vzhilin.gr.constraints.exp.Lt
-import me.vzhilin.gr.constraints.exp.NatExp
-import me.vzhilin.gr.constraints.exp.Neq
 import me.vzhilin.gr.constraints.exp.ProductionTypeId
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
 import me.vzhilin.gr.constraints.exp.RowId
@@ -29,6 +23,7 @@ import me.vzhilin.gr.constraints.exp.le
 import me.vzhilin.gr.constraints.exp.neq
 import me.vzhilin.gr.model.Cell
 import me.vzhilin.gr.rules.Prod
+import me.vzhilin.gr.rules.Rule
 
 typealias HorizontalHandler = Config.(left: Cell, right: Cell) -> Exp
 typealias VerticalHandler = Config.(upper: Cell, bottom: Cell) -> Exp
@@ -135,9 +130,9 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, r
 }
 
 fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
-    val args = r.args.map(grammar::resolve).map(grammar::id).map(::Const)
+    val args = r.components.map(Rule::id).map(::Const)
     fun isProd(cell: Cell) = And(
-        RuleId(cell) eq Const(grammar.id(r)),
+        RuleId(cell) eq Const(r.id),
         ProductionTypeId(cell) eq PROD
     )
 
