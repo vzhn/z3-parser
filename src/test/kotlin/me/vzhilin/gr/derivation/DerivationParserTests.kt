@@ -13,24 +13,24 @@ class DerivationParserTests {
     fun test() {
         val g = simpleGrammar()
         val derivationA = g.parseDerivation("""
-            a b # A(0) b # A(a) b
+            a b # V(0) # V(a) b
         """.trimIndent())
 
         val derivationB = g.parseDerivation("""
-            a b # A(0:0) b # A(a) b
+            a b # V(0:0) # V(a) b
         """.trimIndent())
 
         val expected = listOf(
             DerivationStep(
                 listOf(
-                    TerminalDerivation(g.getTerm('a')),
-                    TerminalDerivation(g.getTerm('b'))
+                    TerminalDerivation(g['a']),
+                    TerminalDerivation(g['b'])
                 ),
-                g.get("A"),
+                g["V"],
                 0..0,
                 listOf(
-                    NonTerminalDerivation(g.get("A"), "a"),
-                    TerminalDerivation(g.getTerm('b'))
+                    NonTerminalDerivation(g["V"], "a"),
+                    TerminalDerivation(g['b'])
                 )
             )
         )

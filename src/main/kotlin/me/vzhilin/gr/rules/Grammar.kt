@@ -6,12 +6,13 @@ class Grammar(private val rules: List<Rule>) {
     val sums get() = rules.filterIsInstance<Sum>()
     val prods get() = rules.filterIsInstance<Prod>()
 
-    fun get(name: String): Rule {
-        return rules.first { it.name == name }
+    operator fun get(name: String): Rule {
+        return rules.firstOrNull { it.name == name } ?:
+            throw IllegalArgumentException("rule not found: '$name'")
     }
 
-    fun getTerm(ch: Char): Term {
-        return get("'$ch'") as Term
+    operator fun get(ch: Char): Term {
+        return terms.first { it.ch == ch }
     }
 
     fun rule(ruleId: Int): Rule {
@@ -35,6 +36,10 @@ data class Term(
     val ch: Char
 ): Rule() {
     override val name = ch.toString()
+
+    override fun toString(): String {
+        return "'$ch'"
+    }
 }
 
 sealed class NonTerm: Rule() {
@@ -45,13 +50,21 @@ data class Prod(
     override val id: Int,
     override val name: String,
     override val components: List<Rule>
-): NonTerm()
+): NonTerm() {
+    override fun toString(): String {
+        return "$name -> ${components.joinToString(" ", transform = Rule::name)}"
+    }
+}
 
 data class Sum(
     override val id: Int,
     override val name: String,
     override val components: List<Rule>
-): NonTerm()
+): NonTerm() {
+    override fun toString(): String {
+        return "$name -> ${components.joinToString(" | ", transform = Rule::name)}"
+    }
+}
 
 private fun parse(vararg lines: String): Grammar {
     val ruleToId = mutableMapOf<String, Int>()
@@ -61,26 +74,42 @@ private fun parse(vararg lines: String): Grammar {
     val terms    = mutableSetOf<Int>()
 
     fun index(rule: String): Int {
-        if (rule.startsWith("'") && (rule.length == 3 || rule.last() != '\'')) {
+        if (rule.startsWith(' ')) {
+            throw IllegalArgumentException("rule could not start with ' '")
+        }
+        if (rule.endsWith(' ')) {
+            throw IllegalArgumentException("rule could not end with ' '")
+        }
+
+        if (rule.startsWith("'") && (rule.length != 3 || rule.last() != '\'')) {
             throw IllegalArgumentException("expected '$rule' one-char term ")
         }
 
-        val ruleId = ruleToId.computeIfAbsent(rule) { ruleToId.size }
-        if (rule.startsWith("'")) {
-            terms.add(ruleId)
+        val ruleId = ruleToId.computeIfAbsent(rule) {
+            val id = ruleToId.size
+            idToRule[id] = rule
+            if (rule.startsWith("'")) {
+                terms.add(id)
+            }
+            id
         }
+
         return ruleId
     }
+
     lines.forEach {
-        val (nonTerm, rule) = it.split("=")
-        if (ruleToId.contains(nonTerm)) {
-            throw IllegalArgumentException("rule '$nonTerm' is defined twice")
-        }
+        val (nonTerm, rule) = it.split("=").map(String::trim)
         val id = index(nonTerm)
         if (rule.contains("|")) {
-            sums[id] = rule.split('|').map(::index)
+            if (sums.contains(id)) {
+                throw IllegalArgumentException("rule '$nonTerm' is defined twice")
+            }
+            sums[id] = rule.split('|').map(String::trim).map(::index)
         } else {
-            products[id] = rule.split(' ').map(::index)
+            if (products.contains(id)) {
+                throw IllegalArgumentException("rule '$nonTerm' is defined twice")
+            }
+            products[id] = rule.split(' ').map(String::trim).map(::index)
         }
     }
 
@@ -96,14 +125,14 @@ private fun parse(vararg lines: String): Grammar {
                 sums.contains(id) -> {
                     val components = mutableListOf<Rule>()
                     idToSymbols[id] = Sum(id, idToRule[id]!!, components)
-                    components.addAll(products[id]!!.map(::resolve))
+                    components.addAll(sums[id]!!.map(::resolve))
                 }
                 terms.contains(id) -> {
                     val ch = idToRule[id]!!
-                    if (ch.length != 1) {
+                    if (ch.length != 3 || !ch.startsWith('\'') || !ch.endsWith('\'')) {
                         throw IllegalArgumentException("expected term rule to be size=1: '$ch'")
                     }
-                    idToSymbols[id] = Term(id, ch[0])
+                    idToSymbols[id] = Term(id, ch[1])
                 }
                 else -> throw IllegalArgumentException("not found: '$id'")
             }

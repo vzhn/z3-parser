@@ -53,7 +53,7 @@ private fun Grammar.parseSymbols(input: String): List<DerivationSymbol> {
     return inp.map { word ->
         if (word.length == 1) {
             val char = word[0]
-            TerminalDerivation(getTerm(char))
+            TerminalDerivation(this[char])
         } else {
             val p1 = word.indexOf('(')
             val p2 = word.indexOf(')')
