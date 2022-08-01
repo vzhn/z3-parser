@@ -11,24 +11,34 @@ data class NonTerminalDerivation(override val rule: Rule, val word: String): Der
         }
     }
 }
-data class DerivationStep(
-    val input: List<DerivationSymbol>,
-    val substitution: Rule,
-    val range: IntRange,
-    val result: List<DerivationSymbol>
-)
 
-// a b         # V(0)     # V(a) b
-// V(a) b      # V(1)     # V(a) V(b)
-// V(a) V(b)   # APP(0:1) # APP(ab)
-// APP(ab)     # T(0)     # T(ab)
+sealed class DerivationStep {
+    abstract val input: List<DerivationSymbol>
+    data class Middle(
+        override val input: List<DerivationSymbol>,
+        val substitutionRule: Rule,
+        val substitutionRange: IntRange
+    ): DerivationStep()
+
+    data class Tail(
+        override val input: List<DerivationSymbol>
+    ): DerivationStep()
+}
+
+// a b         # V(0)
+// V(a) b      # V(1)
+// V(a) V(b)   # APP(0:1)
+// APP(ab)     # T(0)
 fun Grammar.parseDerivation(input: String): List<DerivationStep> {
     return input.split('\n').map { line ->
-        val (left, middle, right) = line.split('#')
-        val leftSymbols = parseSymbols(left.trim())
-        val rightSymbols = parseSymbols(right.trim())
-        val (rule, range) = parseMiddle(middle.trim())
-        DerivationStep(leftSymbols, rule, range, rightSymbols)
+        if (line.contains('#')) {
+            val (left, middle) = line.split('#')
+            val leftSymbols = parseSymbols(left.trim())
+            val (rule, range) = parseMiddle(middle.trim())
+            DerivationStep.Middle(leftSymbols, rule, range)
+        } else {
+            DerivationStep.Tail(parseSymbols(line.trim()))
+        }
     }
 }
 
