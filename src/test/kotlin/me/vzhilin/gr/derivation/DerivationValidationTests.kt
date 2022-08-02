@@ -42,7 +42,7 @@ class DerivationValidationTests {
         val g = simpleGrammar()
         val derivation = g.parseDerivation(input)
 
-        assertEquals(Ok, DerivationValidator(g).validate(derivation))
+        assertEquals(Ok, DerivationValidator().validate(derivation))
     }
 }
 
@@ -60,7 +60,7 @@ data class ImproperProdDerivation(val expected: List<DerivationSymbol>, val got:
 data class BadSumDerivationRange(val ir: IntRange): DerivationValidationResult()
 data class SumComponentWasNotFound(val lineNumber: Int, val sum: Sum, val probe: Rule): DerivationValidationResult()
 
-class DerivationValidator(val g: Grammar) {
+class DerivationValidator {
     private fun result(rs: List<DerivationValidationResult>): DerivationValidationResult {
         return rs.firstOrNull { it != Ok } ?: Ok
     }

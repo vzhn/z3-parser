@@ -30,7 +30,7 @@ import me.vzhilin.gr.constraints.exp.Zero
 
 import kotlin.reflect.KMutableProperty1
 
-data class Cell(val row: Int, val col: Int) {
+data class CellPosition(val row: Int, val col: Int) {
     override fun toString() = "Cell($row, $col)"
 }
 
@@ -69,7 +69,7 @@ data class Matrix(
         return failedExp == null
     }
 
-    fun get(c: Cell): MatrixCell {
+    fun get(c: CellPosition): MatrixCell {
         return get(c.row)[c.col]
     }
 
@@ -127,8 +127,8 @@ data class Matrix(
                 is Constraints.VerticalPair -> {
                     for (rowId in 1 until rows) {
                         for (colId in 0 until columns) {
-                            val upper = Cell(rowId, colId)
-                            val bottom = Cell(rowId - 1, colId)
+                            val upper = CellPosition(rowId, colId)
+                            val bottom = CellPosition(rowId - 1, colId)
                             expressions.add(c.handler(env, upper, bottom))
                         }
                     }
@@ -136,8 +136,8 @@ data class Matrix(
                 is Constraints.HorizontalPair -> {
                     for (rowId in 0 until rows) {
                         for (colId in 1 until columns) {
-                            val right = Cell(rowId, colId)
-                            val left = Cell(rowId, colId - 1)
+                            val right = CellPosition(rowId, colId)
+                            val left = CellPosition(rowId, colId - 1)
                             expressions.add(c.handler(env, left, right))
                         }
                     }
@@ -145,10 +145,10 @@ data class Matrix(
                 is Constraints.Quad -> {
                     for (rowId in 1 until rows) {
                         for (colId in 1 until columns) {
-                            val right = Cell(rowId, colId)
-                            val left = Cell(rowId, colId - 1)
-                            val rightBottom = Cell(rowId - 1, colId)
-                            val leftBottom = Cell(rowId - 1, colId - 1)
+                            val right = CellPosition(rowId, colId)
+                            val left = CellPosition(rowId, colId - 1)
+                            val rightBottom = CellPosition(rowId - 1, colId)
+                            val leftBottom = CellPosition(rowId - 1, colId - 1)
                             expressions.add(c.handler(env,
                                 left, right,
                                 leftBottom, rightBottom
@@ -158,13 +158,13 @@ data class Matrix(
                 }
                 is Constraints.Column -> {
                     for (colId in 0 until columns) {
-                        val cells = (0 until rows).map { rowId -> Cell(rowId, colId) }
+                        val cells = (0 until rows).map { rowId -> CellPosition(rowId, colId) }
                         expressions.add(c.handler(env, colId, cells))
                     }
                 }
                 is Constraints.Row -> {
                     for (rowId in 0 until rows) {
-                        val cells = (0 until columns).map { colId -> Cell(rowId, colId) }
+                        val cells = (0 until columns).map { colId -> CellPosition(rowId, colId) }
                         expressions.add(c.handler(env, rowId, cells))
                     }
                 }
@@ -174,11 +174,11 @@ data class Matrix(
     }
 }
 
-fun prod(rows: Int, columns: Int): List<Cell> {
-    val pairs = mutableListOf<Cell>()
+private fun prod(rows: Int, columns: Int): List<CellPosition> {
+    val pairs = mutableListOf<CellPosition>()
     for (rowId in 0 until rows) {
         for (colId in 0 until columns) {
-            pairs.add(Cell(rowId, colId))
+            pairs.add(CellPosition(rowId, colId))
         }
     }
     return pairs

@@ -21,17 +21,17 @@ import me.vzhilin.gr.constraints.exp.eq
 import me.vzhilin.gr.constraints.exp.ge
 import me.vzhilin.gr.constraints.exp.le
 import me.vzhilin.gr.constraints.exp.neq
-import me.vzhilin.gr.model.Cell
+import me.vzhilin.gr.model.CellPosition
 import me.vzhilin.gr.rules.Prod
 import me.vzhilin.gr.rules.Rule
 
-typealias HorizontalHandler = Config.(left: Cell, right: Cell) -> Exp
-typealias VerticalHandler = Config.(upper: Cell, bottom: Cell) -> Exp
-typealias CellHandler = Config.(cell: Cell) -> Exp
-typealias ColumnHandler = Config.(column: Int, cells: List<Cell>) -> Exp
-typealias FirstColumnHandler = Config.(cell: Cell) -> Exp
-typealias RowHandler = Config.(row: Int, cells: List<Cell>) -> Exp
-typealias QuadHandler = Config.(left: Cell, right: Cell, bottomLeft: Cell, bottomRight: Cell) -> Exp
+typealias HorizontalHandler = Config.(left: CellPosition, right: CellPosition) -> Exp
+typealias VerticalHandler = Config.(upper: CellPosition, bottom: CellPosition) -> Exp
+typealias CellHandler = Config.(cell: CellPosition) -> Exp
+typealias ColumnHandler = Config.(column: Int, cells: List<CellPosition>) -> Exp
+typealias FirstColumnHandler = Config.(cell: CellPosition) -> Exp
+typealias RowHandler = Config.(row: Int, cells: List<CellPosition>) -> Exp
+typealias QuadHandler = Config.(left: CellPosition, right: CellPosition, bottomLeft: CellPosition, bottomRight: CellPosition) -> Exp
 
 sealed class Constraints {
     data class FirstColumn(val handler: FirstColumnHandler): Constraints()
@@ -65,14 +65,14 @@ val StartFields = Constraints.FirstColumn { cell ->
         Eq(Index(cell), Zero))
 }
 
-val AdjGroupId = Constraints.HorizontalPair { left: Cell, right: Cell ->
+val AdjGroupId = Constraints.HorizontalPair { left: CellPosition, right: CellPosition ->
     val leftGroupId = GroupId(left)
     val rightGroupId = GroupId(right)
     Or(leftGroupId eq rightGroupId, Inc(leftGroupId) eq rightGroupId)
 }
 
 // left.groupId = right.groupId => right.subGroupId = left.subGroupId + 1 || right.subGroupId = 0
-val AdjSubGroupId = Constraints.HorizontalPair { left: Cell, right: Cell ->
+val AdjSubGroupId = Constraints.HorizontalPair { left: CellPosition, right: CellPosition ->
     val leftGroupId = GroupId(left)
     val rightGroupId = GroupId(right)
     val leftSubGroupId = SubGroupId(left)
@@ -85,7 +85,7 @@ val AdjSubGroupId = Constraints.HorizontalPair { left: Cell, right: Cell ->
 }
 
 // left.groupId = right.groupId => rightIndex = leftIndex + 1
-val AdjCellIndex = Constraints.HorizontalPair { left: Cell, right: Cell ->
+val AdjCellIndex = Constraints.HorizontalPair { left: CellPosition, right: CellPosition ->
     val leftGroupId = GroupId(left)
     val rightGroupId = GroupId(right)
     val leftIndex = Index(left)
@@ -129,9 +129,9 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, r
     )
 }
 
-fun Config.prodRuleConstraints(r: Prod): List<Constraints> {
+fun prodRuleConstraints(r: Prod): List<Constraints> {
     val args = r.components.map(Rule::id).map(::Const)
-    fun isProd(cell: Cell) = And(
+    fun isProd(cell: CellPosition) = And(
         RuleId(cell) eq Const(r.id),
         ProductionTypeId(cell) eq PROD
     )
