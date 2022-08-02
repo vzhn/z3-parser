@@ -36,10 +36,7 @@ data class Term(
     val ch: Char
 ): Rule() {
     override val name = ch.toString()
-
-    override fun toString(): String {
-        return "'$ch'"
-    }
+    override fun toString() = "'$ch'"
 }
 
 sealed class NonTerm: Rule() {
@@ -51,9 +48,8 @@ data class Prod(
     override val name: String,
     override val components: List<Rule>
 ): NonTerm() {
-    override fun toString(): String {
-        return "$name -> ${components.joinToString(" ", transform = Rule::name)}"
-    }
+    override fun toString() =
+        "$name -> ${components.joinToString(" ", transform = Rule::name)}"
 }
 
 data class Sum(
@@ -80,7 +76,6 @@ private fun parse(vararg lines: String): Grammar {
         if (rule.endsWith(' ')) {
             throw IllegalArgumentException("rule could not end with ' '")
         }
-
         if (rule.startsWith("'") && (rule.length != 3 || rule.last() != '\'')) {
             throw IllegalArgumentException("expected '$rule' one-char term ")
         }
@@ -137,7 +132,6 @@ private fun parse(vararg lines: String): Grammar {
                 else -> throw IllegalArgumentException("not found: '$id'")
             }
         }
-
         return idToSymbols[id]!!
     }
 

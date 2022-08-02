@@ -162,7 +162,7 @@ class DerivationValidator(val g: Grammar) {
         val ds = symbols.first()
 
         // 2. check that sum has option == rule
-        val option = rule.components.firstOrNull { it == ds.rule }
+        rule.components.firstOrNull { it == ds.rule }
             ?: return SumComponentWasNotFound(lineNumber, rule, ds.rule)
 
         // 3. replacing option to rule
