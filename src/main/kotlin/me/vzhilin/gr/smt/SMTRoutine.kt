@@ -4,13 +4,13 @@ import com.microsoft.z3.*
 import me.vzhilin.gr.constraints.exp.*
 
 class SMTRoutine(
-    private val cols: Int,
     private val rows: Int,
+    private val cols: Int,
     private val exps: List<Exp>
 ) {
     private val context = Context()
 
-    private fun createSolver() {
+    fun createSolver() {
         val solver = context.mkSolver("LIA")
         solver.add(*exps.map { convBool(it) }.toTypedArray())
     }

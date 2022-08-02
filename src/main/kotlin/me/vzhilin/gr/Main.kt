@@ -3,6 +3,7 @@ package me.vzhilin.gr
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
+import me.vzhilin.gr.rules.DerivationStep
 import me.vzhilin.gr.rules.Grammar
 import java.io.File
 
@@ -14,6 +15,7 @@ fun main(argv: Array<String>) {
 
     val g = readGrammar(grammarFilePath)
     val input = File(inputFilePath).readText().trim()
+    val derivation: List<DerivationStep> = SMTParser(g, input, 4).parse()
 }
 
 private fun readGrammar(input: String): Grammar {

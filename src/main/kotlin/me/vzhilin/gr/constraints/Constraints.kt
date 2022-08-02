@@ -22,16 +22,17 @@ import me.vzhilin.gr.constraints.exp.ge
 import me.vzhilin.gr.constraints.exp.le
 import me.vzhilin.gr.constraints.exp.neq
 import me.vzhilin.gr.model.CellPosition
+import me.vzhilin.gr.model.Matrix
 import me.vzhilin.gr.rules.Prod
 import me.vzhilin.gr.rules.Rule
 
-typealias HorizontalHandler = Config.(left: CellPosition, right: CellPosition) -> Exp
-typealias VerticalHandler = Config.(upper: CellPosition, bottom: CellPosition) -> Exp
-typealias CellHandler = Config.(cell: CellPosition) -> Exp
-typealias ColumnHandler = Config.(column: Int, cells: List<CellPosition>) -> Exp
-typealias FirstColumnHandler = Config.(cell: CellPosition) -> Exp
-typealias RowHandler = Config.(row: Int, cells: List<CellPosition>) -> Exp
-typealias QuadHandler = Config.(left: CellPosition, right: CellPosition, bottomLeft: CellPosition, bottomRight: CellPosition) -> Exp
+typealias HorizontalHandler = Matrix.(left: CellPosition, right: CellPosition) -> Exp
+typealias VerticalHandler = Matrix.(upper: CellPosition, bottom: CellPosition) -> Exp
+typealias CellHandler = Matrix.(cell: CellPosition) -> Exp
+typealias ColumnHandler = Matrix.(column: Int, cells: List<CellPosition>) -> Exp
+typealias FirstColumnHandler = Matrix.(cell: CellPosition) -> Exp
+typealias RowHandler = Matrix.(row: Int, cells: List<CellPosition>) -> Exp
+typealias QuadHandler = Matrix.(left: CellPosition, right: CellPosition, bottomLeft: CellPosition, bottomRight: CellPosition) -> Exp
 
 sealed class Constraints {
     data class FirstColumn(val handler: FirstColumnHandler): Constraints()
@@ -52,9 +53,9 @@ val BasicRanges = Constraints.Single { cell ->
         And(
             RuleId(cell) ge Zero, RuleId(cell) le Const(grammar.size - 1),
             ProductionTypeId(cell) ge Zero, ProductionTypeId(cell) le Const(2),
-            GroupId(cell) ge Zero, GroupId(cell) le Const(columns - 1),
-            SubGroupId(cell) ge Zero, SubGroupId(cell) le Const(columns - 1),
-            Index(cell) ge Zero, Index(cell) le Const(columns - 1),
+            GroupId(cell) ge Zero, GroupId(cell) le Const(cols - 1),
+            SubGroupId(cell) ge Zero, SubGroupId(cell) le Const(cols - 1),
+            Index(cell) ge Zero, Index(cell) le Const(cols - 1),
         )
     )
 }
@@ -187,7 +188,7 @@ fun prodRuleConstraints(r: Prod): List<Constraints> {
             )
         ))
 
-        if (right.col == columns - 1) {
+        if (right.col == cols - 1) {
             cases.add(Impl(
                 isProd(right),
                 And(

@@ -1,6 +1,5 @@
 package me.vzhilin.gr.model
 
-import me.vzhilin.gr.constraints.Config
 import me.vzhilin.gr.constraints.Constraints
 import me.vzhilin.gr.constraints.exp.And
 import me.vzhilin.gr.constraints.exp.CellField
@@ -36,12 +35,10 @@ data class CellPosition(val row: Int, val col: Int) {
 }
 
 data class Matrix(
-    val env: Config
+    val grammar: Grammar,
+    val rows: Int,
+    val cols: Int,
 ) {
-    val grammar: Grammar get() = env.grammar
-    private val columns: Int = env.columns
-    private val rows: Int = env.rows
-
     // (col, row)
     private val data: MutableList<MutableList<MatrixCell>> = mutableListOf()
 
@@ -50,7 +47,7 @@ data class Matrix(
             val row = mutableListOf<MatrixCell>()
             data.add(row)
 
-            (0 until columns).forEach { colId ->
+            (0 until cols).forEach { colId ->
                 row.add(MatrixCell(rowId, colId))
             }
         }
@@ -59,8 +56,8 @@ data class Matrix(
     operator fun get(rowId: Int): List<MatrixCell> = data[rowId]
     fun set(f: KMutableProperty1<MatrixCell, Int>, vararg vs: Int) {
         vs.forEachIndexed { index, v ->
-            val rowId = (rows - 1) - (index / columns)
-            val colId = index % columns
+            val rowId = (rows - 1) - (index / cols)
+            val colId = index % cols
             f.set(data[rowId][colId], v)
         }
     }
@@ -117,41 +114,41 @@ data class Matrix(
         cs.forEach { c ->
             when (c) {
                 is Constraints.Single -> {
-                    cartesianProduct(rows, columns).map { cell ->
-                        c.handler(env, cell)
+                    cartesianProduct(rows, cols).map { cell ->
+                        c.handler(this, cell)
                     }.toCollection(expressions)
                 }
                 is Constraints.FirstColumn -> {
                     cartesianProduct(rows, 1).map { cell ->
-                        c.handler(env, cell)
+                        c.handler(this, cell)
                     }.toCollection(expressions)
                 }
                 is Constraints.VerticalPair -> {
                     for (rowId in 1 until rows) {
-                        for (colId in 0 until columns) {
+                        for (colId in 0 until cols) {
                             val upper = CellPosition(rowId, colId)
                             val bottom = CellPosition(rowId - 1, colId)
-                            expressions.add(c.handler(env, upper, bottom))
+                            expressions.add(c.handler(this, upper, bottom))
                         }
                     }
                 }
                 is Constraints.HorizontalPair -> {
                     for (rowId in 0 until rows) {
-                        for (colId in 1 until columns) {
+                        for (colId in 1 until cols) {
                             val right = CellPosition(rowId, colId)
                             val left = CellPosition(rowId, colId - 1)
-                            expressions.add(c.handler(env, left, right))
+                            expressions.add(c.handler(this, left, right))
                         }
                     }
                 }
                 is Constraints.Quad -> {
                     for (rowId in 1 until rows) {
-                        for (colId in 1 until columns) {
+                        for (colId in 1 until cols) {
                             val right = CellPosition(rowId, colId)
                             val left = CellPosition(rowId, colId - 1)
                             val rightBottom = CellPosition(rowId - 1, colId)
                             val leftBottom = CellPosition(rowId - 1, colId - 1)
-                            expressions.add(c.handler(env,
+                            expressions.add(c.handler(this,
                                 left, right,
                                 leftBottom, rightBottom
                             ))
@@ -159,15 +156,15 @@ data class Matrix(
                     }
                 }
                 is Constraints.Column -> {
-                    for (colId in 0 until columns) {
+                    for (colId in 0 until cols) {
                         val cells = (0 until rows).map { rowId -> CellPosition(rowId, colId) }
-                        expressions.add(c.handler(env, colId, cells))
+                        expressions.add(c.handler(this, colId, cells))
                     }
                 }
                 is Constraints.Row -> {
                     for (rowId in 0 until rows) {
-                        val cells = (0 until columns).map { colId -> CellPosition(rowId, colId) }
-                        expressions.add(c.handler(env, rowId, cells))
+                        val cells = (0 until cols).map { colId -> CellPosition(rowId, colId) }
+                        expressions.add(c.handler(this, rowId, cells))
                     }
                 }
             }
@@ -176,7 +173,7 @@ data class Matrix(
     }
 
     fun get(rowId: Int, colId: Int): MatrixCell {
-        if (rowId < 0 || rowId > rows - 1 || colId < 0 || colId > columns - 1)
+        if (rowId < 0 || rowId > rows - 1 || colId < 0 || colId > cols - 1)
             throw IllegalArgumentException("wrong rowId, colId: $rowId, $colId")
         return get(CellPosition(rowId, colId))
     }
