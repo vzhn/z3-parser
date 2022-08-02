@@ -71,10 +71,10 @@ private fun parse(vararg lines: String): Grammar {
 
     fun index(rule: String): Int {
         if (rule.startsWith(' ')) {
-            throw IllegalArgumentException("rule could not start with ' '")
+            throw IllegalArgumentException("rule could not start with ' ' (space)")
         }
         if (rule.endsWith(' ')) {
-            throw IllegalArgumentException("rule could not end with ' '")
+            throw IllegalArgumentException("rule could not end with ' ' (space)")
         }
         if (rule.startsWith("'") && (rule.length != 3 || rule.last() != '\'')) {
             throw IllegalArgumentException("expected '$rule' one-char term ")
