@@ -27,6 +27,7 @@ import me.vzhilin.gr.constraints.exp.RowId
 import me.vzhilin.gr.constraints.exp.RuleId
 import me.vzhilin.gr.constraints.exp.SubGroupId
 import me.vzhilin.gr.constraints.exp.Zero
+import me.vzhilin.gr.rules.Grammar
 
 import kotlin.reflect.KMutableProperty1
 
@@ -37,6 +38,7 @@ data class CellPosition(val row: Int, val col: Int) {
 data class Matrix(
     val env: Config
 ) {
+    val grammar: Grammar get() = env.grammar
     private val columns: Int = env.columns
     private val rows: Int = env.rows
 
@@ -54,7 +56,7 @@ data class Matrix(
         }
     }
 
-    operator fun get(rowId: Int) = data[rowId]
+    operator fun get(rowId: Int): List<MatrixCell> = data[rowId]
     fun set(f: KMutableProperty1<MatrixCell, Int>, vararg vs: Int) {
         vs.forEachIndexed { index, v ->
             val rowId = (rows - 1) - (index / columns)
@@ -171,6 +173,12 @@ data class Matrix(
             }
         }
         return expressions
+    }
+
+    fun get(rowId: Int, colId: Int): MatrixCell {
+        if (rowId < 0 || rowId > rows - 1 || colId < 0 || colId > columns - 1)
+            throw IllegalArgumentException("wrong rowId, colId: $rowId, $colId")
+        return get(CellPosition(rowId, colId))
     }
 }
 

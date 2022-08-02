@@ -6,6 +6,10 @@ class Grammar(private val rules: List<Rule>) {
     val sums get() = rules.filterIsInstance<Sum>()
     val prods get() = rules.filterIsInstance<Prod>()
 
+    operator fun get(ruleId: Int): Rule {
+        return rules.first { it.id == ruleId }
+    }
+
     operator fun get(name: String): Rule {
         return rules.firstOrNull { it.name == name } ?:
             throw IllegalArgumentException("rule not found: '$name'")
