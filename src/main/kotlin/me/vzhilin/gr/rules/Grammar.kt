@@ -92,7 +92,7 @@ private fun parse(vararg lines: String): Grammar {
         return ruleId
     }
 
-    lines.forEach {
+    lines.forEach { it ->
         val (nonTerm, rule) = it.split("=").map(String::trim)
         val id = index(nonTerm)
         if (rule.contains("|")) {
@@ -104,7 +104,17 @@ private fun parse(vararg lines: String): Grammar {
             if (products.contains(id)) {
                 throw IllegalArgumentException("rule '$nonTerm' is defined twice")
             }
-            products[id] = rule.split(' ').map(String::trim).map(::index)
+            products[id] = rule.split(' ').map(String::trim).flatMap { word ->
+                if (word.startsWith("'")) {
+                    if (!word.endsWith("'")) {
+                        throw IllegalArgumentException("expected that '$rule' is terminal string")
+                    } else {
+                        word.substring(1, word.length - 2).map { ch -> "'$ch'" }.map(::index)
+                    }
+                } else {
+                    listOf(index(word))
+                }
+            }
         }
     }
 
