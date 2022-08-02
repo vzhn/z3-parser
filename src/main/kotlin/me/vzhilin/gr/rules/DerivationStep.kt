@@ -60,17 +60,24 @@ private fun Grammar.parseMiddle(input: String): Pair<Rule, IntRange> {
 
 private fun Grammar.parseSymbols(input: String): List<DerivationSymbol> {
     val inp = input.split(Regex("\\s+"))
-    return inp.map { word ->
-        if (word.length == 1) {
-            val char = word[0]
-            TerminalDerivation(this[char])
+    return inp.flatMap { word ->
+        if (word.startsWith('\'')) {
+            if (word.length < 3 || !word.endsWith('\''))
+                throw IllegalArgumentException("expected '$word' to be term string")
+
+            word.substring(1, word.length - 1).map { char ->
+                TerminalDerivation(this[char])
+            }
         } else {
             val p1 = word.indexOf('(')
             val p2 = word.indexOf(')')
             val chars = word.substring(p1 + 1, p2)
+            if (chars.length < 3 || !chars.endsWith('\''))
+                throw IllegalArgumentException("expected '$chars' to be term string")
+
             val name = word.substring(0, p1)
             val rule = get(name)
-            NonTerminalDerivation(rule, chars)
+            listOf(NonTerminalDerivation(rule, chars.substring(1 until chars.lastIndex)))
         }
     }
 }

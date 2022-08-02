@@ -12,7 +12,8 @@ class Grammar(private val rules: List<Rule>) {
     }
 
     operator fun get(ch: Char): Term {
-        return terms.first { it.ch == ch }
+        return terms.firstOrNull { it.ch == ch } ?:
+            throw IllegalArgumentException("term not found: '$ch'")
     }
 
     fun rule(ruleId: Int): Rule {
@@ -109,7 +110,7 @@ private fun parse(vararg lines: String): Grammar {
                     if (!word.endsWith("'")) {
                         throw IllegalArgumentException("expected that '$rule' is terminal string")
                     } else {
-                        word.substring(1, word.length - 2).map { ch -> "'$ch'" }.map(::index)
+                        word.substring(1, word.length - 1).map { ch -> "'$ch'" }.map(::index)
                     }
                 } else {
                     listOf(index(word))

@@ -4,6 +4,7 @@ import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.rules.Prod
 import me.vzhilin.gr.rules.Term
 import kotlin.test.Test
+import kotlin.test.assertIs
 
 fun simpleGrammar(): Grammar {
     return Grammar.of(
@@ -16,7 +17,7 @@ fun simpleGrammar(): Grammar {
 
 class GrammarTests() {
     @Test
-    fun test() {
+    fun test1() {
         val g = Grammar.of(
             "A = 'aaa'",
             "B = 'bbb'",
@@ -28,5 +29,11 @@ class GrammarTests() {
         val bTerms = b.components.filterIsInstance<Term>()
         assert(aTerms.all { it.ch == 'a' })
         assert(bTerms.all { it.ch == 'b' })
+    }
+
+    @Test
+    fun test2() {
+        val g = simpleGrammar()
+        assertIs<Term>(g['λ'])
     }
 }

@@ -6,23 +6,10 @@ import me.vzhilin.gr.rules.Rule
 data class DerivationNode(val rule: Rule, val components: List<Rule>)
 typealias Derivation = List<DerivationNode>
 
-fun parseDerivation(g: Grammar, vararg lines : String): List<DerivationNode> {
+fun parseDerivation(g: Grammar, vararg lines : String): Derivation {
     val symbols = lines.map { line -> parseGrammarSymbols(g, line) }
     symbols.zipWithNext().forEach { (left, right) ->
-        if (left.size < right.size) {
-            throw IllegalArgumentException("expected: ${left}.size < ${right}.size")
-        }
-
-        val index = left.zip(right).indexOfFirst { (a, b) -> a != b }
-        if (index == -1 && left.size == right.size) {
-            throw IllegalArgumentException("expected: ${left} != ${right}")
-        }
-
-        if (index == -1) {
-            TODO()
-        } else {
-            TODO()
-        }
+       val s = discoverSubstitution(left, right)
     }
     TODO()
 }
@@ -31,7 +18,6 @@ fun discoverSubstitution(
     left: List<Rule>,
     right: List<Rule>
 ): Pair<IntRange, Rule> {
-    val minLen = minOf(left.size, right.size)
     TODO("Not yet implemented")
 }
 
