@@ -117,12 +117,12 @@ data class Matrix(
         cs.forEach { c ->
             when (c) {
                 is Constraints.Single -> {
-                    prod(rows, columns).map { cell ->
+                    cartesianProduct(rows, columns).map { cell ->
                         c.handler(env, cell)
                     }.toCollection(expressions)
                 }
                 is Constraints.FirstColumn -> {
-                    prod(rows, 1).map { cell ->
+                    cartesianProduct(rows, 1).map { cell ->
                         c.handler(env, cell)
                     }.toCollection(expressions)
                 }
@@ -182,7 +182,7 @@ data class Matrix(
     }
 }
 
-private fun prod(rows: Int, columns: Int): List<CellPosition> {
+private fun cartesianProduct(rows: Int, columns: Int): List<CellPosition> {
     val pairs = mutableListOf<CellPosition>()
     for (rowId in 0 until rows) {
         for (colId in 0 until columns) {

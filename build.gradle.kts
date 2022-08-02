@@ -17,6 +17,14 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+kotlin {
+    sourceSets {
+        dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
+        }
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 }
