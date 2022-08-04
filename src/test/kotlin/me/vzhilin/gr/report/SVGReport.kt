@@ -1,11 +1,10 @@
 package me.vzhilin.gr.report
 
-import me.vzhilin.gr.model.CellPosition
 import me.vzhilin.gr.rules.Grammar
 import java.io.File
 import java.io.PrintWriter
 
-fun writeSvg(file: File, input: String, g: Grammar, data: Map<Int, Map<Pair<Int, Int>, Map<Int, List<CellPosition>>>>) {
+fun writeSvg(file: File, input: String, g: Grammar, data: Map<Int, Map<Pair<Int, Int>, Map<Int, List<Pair<Int, Int>>>>>) {
     val container = buildContainer(input, g, data)
     val commands = draw(container)
 
@@ -32,7 +31,7 @@ fun writeSvg(file: File, input: String, g: Grammar, data: Map<Int, Map<Pair<Int,
 fun buildContainer(
     input: String,
     g: Grammar,
-    data: Map<Int, Map<Pair<Int, Int>, Map<Int, List<CellPosition>>>>
+    data: Map<Int, Map<Pair<Int, Int>, Map<Int, List<Pair<Int, Int>>>>>
 ): Container {
     return Container(ContainerType.COL, "", "", data.map { (rowId, rowData) ->
         Container(ContainerType.ROW, "row #$rowId", "", rowData.map { (groupIdRuleId, groupData) ->
@@ -40,7 +39,7 @@ fun buildContainer(
             val rule = g.rule(ruleId)
             Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", groupData.map { (subGroupId, cells) ->
                 Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", cells.map { cell ->
-                    Container(ContainerType.CELL, "#${cell.row},${cell.col}", input[cell.col].toString(), emptyList())
+                    Container(ContainerType.CELL, "#${cell.first},${cell.second}", input[cell.first].toString(), emptyList())
                 })
             })
         }).also {

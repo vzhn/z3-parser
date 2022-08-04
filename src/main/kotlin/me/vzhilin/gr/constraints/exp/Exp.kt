@@ -1,7 +1,5 @@
 package me.vzhilin.gr.constraints.exp
 
-import me.vzhilin.gr.model.CellPosition
-
 sealed class Exp
 sealed class NatExp
 
@@ -26,34 +24,33 @@ data class Const(val n: Int): NatExp() {
     }
 }
 sealed class CellField: NatExp() {
-    abstract val cell: CellPosition
+    abstract val rowId: Int
+    abstract val colId: Int
 }
-data class RowId(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.rowId"
-}
-data class ColumnId(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.columnId"
-}
-data class ProductionTypeId(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.productionTypeId"
+
+data class ProductionTypeId(
+    override val rowId: Int,
+    override val colId: Int
+): CellField() {
     companion object {
         val BYPASS = Const(0)
         val SUM = Const(1)
         val PROD = Const(2)
     }
 }
-data class RuleId(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.rowId"
-}
-data class GroupId(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.groupId"
-}
-data class SubGroupId(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.subGroupId"
-}
-data class Index(override val cell: CellPosition): CellField() {
-    override fun toString() = "$cell.index"
-}
+data class RuleId(override val rowId: Int,
+                  override val colId: Int): CellField()
+
+data class GroupId(    override val rowId: Int,
+                       override val colId: Int): CellField()
+
+
+data class SubGroupId(    override val rowId: Int,
+                          override val colId: Int): CellField()
+
+
+data class Index(    override val rowId: Int,
+                     override val colId: Int): CellField()
 data class Gt(val lhs: NatExp, val rhs: NatExp): Exp() {
     override fun toString() = "$lhs > $rhs"
 }

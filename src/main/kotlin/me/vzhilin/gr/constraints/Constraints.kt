@@ -1,19 +1,26 @@
 package me.vzhilin.gr.constraints
 
 import me.vzhilin.gr.constraints.exp.And
-import me.vzhilin.gr.constraints.exp.ColumnId
+import me.vzhilin.gr.constraints.exp.CellField
 import me.vzhilin.gr.constraints.exp.Const
 import me.vzhilin.gr.constraints.exp.Eq
-import me.vzhilin.gr.constraints.exp.Or
 import me.vzhilin.gr.constraints.exp.Exp
+import me.vzhilin.gr.constraints.exp.Ge
 import me.vzhilin.gr.constraints.exp.GroupId
+import me.vzhilin.gr.constraints.exp.Gt
 import me.vzhilin.gr.constraints.exp.Iff
 import me.vzhilin.gr.constraints.exp.Impl
 import me.vzhilin.gr.constraints.exp.Inc
 import me.vzhilin.gr.constraints.exp.Index
+import me.vzhilin.gr.constraints.exp.Le
+import me.vzhilin.gr.constraints.exp.Lt
+import me.vzhilin.gr.constraints.exp.NatExp
+import me.vzhilin.gr.constraints.exp.Neq
+import me.vzhilin.gr.constraints.exp.Not
+import me.vzhilin.gr.constraints.exp.One
+import me.vzhilin.gr.constraints.exp.Or
 import me.vzhilin.gr.constraints.exp.ProductionTypeId
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
-import me.vzhilin.gr.constraints.exp.RowId
 import me.vzhilin.gr.constraints.exp.RuleId
 import me.vzhilin.gr.constraints.exp.SubGroupId
 import me.vzhilin.gr.constraints.exp.Zero
@@ -21,18 +28,23 @@ import me.vzhilin.gr.constraints.exp.eq
 import me.vzhilin.gr.constraints.exp.ge
 import me.vzhilin.gr.constraints.exp.le
 import me.vzhilin.gr.constraints.exp.neq
-import me.vzhilin.gr.model.CellPosition
-import me.vzhilin.gr.model.Matrix
+import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.rules.Prod
 import me.vzhilin.gr.rules.Rule
+import me.vzhilin.gr.smt.Cells
 
-typealias HorizontalHandler = Matrix.(left: CellPosition, right: CellPosition) -> Exp
-typealias VerticalHandler = Matrix.(upper: CellPosition, bottom: CellPosition) -> Exp
-typealias CellHandler = Matrix.(cell: CellPosition) -> Exp
-typealias ColumnHandler = Matrix.(column: Int, cells: List<CellPosition>) -> Exp
-typealias FirstColumnHandler = Matrix.(cell: CellPosition) -> Exp
-typealias RowHandler = Matrix.(row: Int, cells: List<CellPosition>) -> Exp
-typealias QuadHandler = Matrix.(left: CellPosition, right: CellPosition, bottomLeft: CellPosition, bottomRight: CellPosition) -> Exp
+typealias HorizontalHandler = (rowId: Int, leftColId: Int, rightColId: Int) -> Exp
+typealias VerticalHandler = (colId: Int, rowIdUpper: Int, rowIdBottom: Int) -> Exp
+typealias CellHandler = (rowId: Int, colId: Int) -> Exp
+typealias ColumnHandler = (columnId: Int, rowIds: List<Int>) -> Exp
+typealias FirstColumnHandler = (rowId: Int, colId: Int) -> Exp
+typealias RowHandler = (rowId: Int, colIds: List<Int>) -> Exp
+typealias QuadHandler = (
+    leftColId: Int, leftRowId: Int,
+    rightColId: Int, rightRowId: Int,
+    bottomLeftColId: Int, bottomLeftRowId: Int,
+    bottomRightColId: Int, bottomRightRowId: Int,
+) -> Exp
 
 sealed class Constraints {
     data class FirstColumn(val handler: FirstColumnHandler): Constraints()
@@ -44,40 +56,39 @@ sealed class Constraints {
     data class Single(val handler: CellHandler): Constraints()
 }
 
-val BasicRanges = Constraints.Single { cell ->
+fun BasicRanges(g: Grammar, rows: Int, cols: Int) = Constraints.Single { rowId, colId ->
+    val ruleId = RuleId(rowId, colId)
+    val productionTypeId = ProductionTypeId(rowId, colId)
+    val groupId = GroupId(rowId, colId)
+    val subGroupId = SubGroupId(rowId, colId)
+    val index = Index(rowId, colId)
     And(
-        And(
-            RowId(cell) eq Const(cell.row),
-            ColumnId(cell) eq Const(cell.col),
-        ),
-        And(
-            RuleId(cell) ge Zero, RuleId(cell) le Const(grammar.size - 1),
-            ProductionTypeId(cell) ge Zero, ProductionTypeId(cell) le Const(2),
-            GroupId(cell) ge Zero, GroupId(cell) le Const(cols - 1),
-            SubGroupId(cell) ge Zero, SubGroupId(cell) le Const(cols - 1),
-            Index(cell) ge Zero, Index(cell) le Const(cols - 1),
-        )
+        ruleId ge Zero, ruleId le Const(g.size - 1),
+        productionTypeId ge Zero, productionTypeId le Const(2),
+        groupId ge Zero, groupId le Const(cols - 1),
+        subGroupId ge Zero, subGroupId le Const(cols - 1),
+        index ge Zero, index le Const(cols - 1),
     )
 }
 
-val StartFields = Constraints.FirstColumn { cell ->
-    And(Eq(GroupId(cell), Zero),
-        Eq(SubGroupId(cell), Zero),
-        Eq(Index(cell), Zero))
+val StartFields = Constraints.FirstColumn { rowId, colId ->
+    And(Eq(GroupId(rowId, colId), Zero),
+        Eq(SubGroupId(rowId, colId), Zero),
+        Eq(Index(rowId, colId), Zero))
 }
 
-val AdjGroupId = Constraints.HorizontalPair { left: CellPosition, right: CellPosition ->
-    val leftGroupId = GroupId(left)
-    val rightGroupId = GroupId(right)
+val AdjGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int ->
+    val leftGroupId = GroupId(rowId, leftColId)
+    val rightGroupId = GroupId(rowId, rightColId)
     Or(leftGroupId eq rightGroupId, Inc(leftGroupId) eq rightGroupId)
 }
 
 // left.groupId = right.groupId => right.subGroupId = left.subGroupId + 1 || right.subGroupId = 0
-val AdjSubGroupId = Constraints.HorizontalPair { left: CellPosition, right: CellPosition ->
-    val leftGroupId = GroupId(left)
-    val rightGroupId = GroupId(right)
-    val leftSubGroupId = SubGroupId(left)
-    val rightSubGroupId = SubGroupId(right)
+val AdjSubGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int ->
+    val leftGroupId = GroupId(rowId, leftColId)
+    val rightGroupId = GroupId(rowId, rightColId)
+    val leftSubGroupId = SubGroupId(rowId, leftColId)
+    val rightSubGroupId = SubGroupId(rowId, rightColId)
     And(
         Impl(leftGroupId eq rightGroupId,
             Or(Inc(leftSubGroupId) eq rightSubGroupId, leftSubGroupId eq rightSubGroupId)),
@@ -86,93 +97,100 @@ val AdjSubGroupId = Constraints.HorizontalPair { left: CellPosition, right: Cell
 }
 
 // left.groupId = right.groupId => rightIndex = leftIndex + 1
-val AdjCellIndex = Constraints.HorizontalPair { left: CellPosition, right: CellPosition ->
-    val leftGroupId = GroupId(left)
-    val rightGroupId = GroupId(right)
-    val leftIndex = Index(left)
-    val rightIndex = Index(right)
+val AdjCellIndex = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int  ->
+    val leftGroupId = GroupId(rowId, leftColId)
+    val rightGroupId = GroupId(rowId, rightColId)
+    val leftIndex = Index(rowId, leftColId)
+    val rightIndex = Index(rowId, rightColId)
     And(
         Impl(leftGroupId eq rightGroupId, Inc(leftIndex) eq rightIndex),
         Impl(leftGroupId neq rightGroupId, rightIndex eq Zero)
     )
 }
 
-val DontDivideGroup = Constraints.VerticalPair { upper, bottom ->
-    Impl(Index(upper) neq Zero, Index(bottom) neq Zero)
+val DontDivideGroup = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, rowIdBottom: Int ->
+    Impl(Index(rowIdUpper, colId) neq Zero, Index(rowIdBottom, colId) neq Zero)
 }
 
-val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { left, right ->
+val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
-        GroupId(left) eq GroupId(right),
-        RuleId(left) eq RuleId(right)
+        GroupId(rowId, leftColId) eq GroupId(rowId, rightColId),
+        RuleId(rowId, leftColId) eq RuleId(rowId, rightColId)
     )
 }
 
-val SameRuleIdImplSameRuleType = Constraints.HorizontalPair { left, right ->
+val SameRuleIdImplSameRuleType = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
-        RuleId(left) eq RuleId(right),
-        ProductionTypeId(left) eq ProductionTypeId(right)
+        RuleId(rowId, leftColId) eq RuleId(rowId, rightColId),
+        ProductionTypeId(rowId, leftColId) eq ProductionTypeId(rowId, rightColId)
     )
 }
 
-val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Single { cell ->
-    Impl(ProductionTypeId(cell) neq PROD, SubGroupId(cell) eq Zero)
+val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Single { rowId, colId ->
+    Impl(ProductionTypeId(rowId, colId) neq PROD, SubGroupId(rowId, colId) eq Zero)
 }
 
-val DiffSubGroupIdIffDiffGroupId = Constraints.Quad { left, right, leftBottom, rightBottom ->
+val DiffSubGroupIdIffDiffGroupId = Constraints.Quad {
+        leftRowId, leftColId, rightRowId, rightColId,
+        bottomLeftRowId, bottomLeftColId, bottomRightRowId, bottomRightColId ->
     Impl(
-        And(ProductionTypeId(left) eq PROD,
-            GroupId(left) eq GroupId(right)),
+        And(ProductionTypeId(leftRowId, leftColId) eq PROD,
+            GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)),
         Iff(
-            SubGroupId(left) eq SubGroupId(right),
-            GroupId(leftBottom) eq GroupId(rightBottom)
+            SubGroupId(leftRowId, leftColId) eq SubGroupId(rightRowId, rightColId),
+            GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
         )
     )
 }
 
-fun prodRuleConstraints(r: Prod): List<Constraints> {
+fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
     val args = r.components.map(Rule::id).map(::Const)
-    fun isProd(cell: CellPosition) = And(
-        RuleId(cell) eq Const(r.id),
-        ProductionTypeId(cell) eq PROD
+    fun isProd(rowId: Int, colId: Int) = And(
+        RuleId(rowId, colId) eq Const(r.id),
+        ProductionTypeId(rowId, colId) eq PROD
     )
 
     val rs = mutableListOf<Constraints>()
-    rs.add(Constraints.Quad { left, right, bottomLeft, bottomRight ->
+    rs.add(Constraints.Quad { leftRowId, leftColId, rightRowId, rightColId,
+                              bottomLeftRowId, bottomLeftColId, bottomRightRowId, bottomRightColId ->
+
         val orExp = Or(args.zipWithNext().mapIndexed {
                 index, (lhs, rhs) -> And(
-            RuleId(bottomLeft) eq lhs,
-            RuleId(bottomRight) eq rhs,
-            SubGroupId(left) eq Const(index),
-            SubGroupId(right) eq Const(index + 1)
+            RuleId(bottomLeftRowId, bottomLeftColId) eq lhs,
+            RuleId(bottomRightRowId, bottomRightColId) eq rhs,
+            SubGroupId(leftRowId, leftColId) eq Const(index),
+            SubGroupId(rightRowId, leftColId) eq Const(index + 1)
         )
         })
         val cases = mutableListOf<Exp>()
 
         // start
         cases.add(Impl(
-            And(isProd(right), GroupId(left) neq GroupId(right)),
+            And(isProd(rightRowId, rightColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
             And(
-                SubGroupId(right) eq Zero,
-                RuleId(bottomRight) eq args.first()
+                SubGroupId(rightRowId, rightColId) eq Zero,
+                RuleId(bottomRightRowId, bottomRightColId) eq args.first()
             )))
 
-        if (left.col == 0) {
-            cases.add(Impl(isProd(left), And(SubGroupId(left) eq Zero, RuleId(bottomLeft) eq args.first())))
+        if (leftColId == 0) {
+            cases.add(Impl(isProd(leftRowId, leftColId), And(SubGroupId(leftRowId, leftColId) eq Zero, RuleId(bottomLeftRowId, bottomLeftColId) eq args.first())))
         }
 
         // middle
         cases.add(
             Impl(
-                And(isProd(left), isProd(right), GroupId(left) eq GroupId(right)),
+                And(
+                    isProd(leftRowId, leftColId),
+                    isProd(rightRowId, rightColId),
+                    GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)),
                 Or(
                     And(
-                        SubGroupId(left) eq SubGroupId(right),
-                        GroupId(bottomLeft) eq GroupId(bottomRight)
+                        SubGroupId(leftRowId, leftColId) eq SubGroupId(rightRowId, rightColId),
+                        GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
                     ),
                     And(
-                        Inc(SubGroupId(left)) eq SubGroupId(right),
-                        Inc(GroupId(bottomLeft)) eq GroupId(bottomRight),
+                        Inc(SubGroupId(leftRowId, leftColId)) eq SubGroupId(rightRowId, rightColId),
+                        Inc(GroupId(bottomLeftRowId, bottomLeftColId)) eq GroupId(bottomRightRowId, bottomRightColId),
                         orExp
                     )
                 )
@@ -181,19 +199,19 @@ fun prodRuleConstraints(r: Prod): List<Constraints> {
 
         // finish
         cases.add(Impl(
-            And(isProd(left), GroupId(left) neq GroupId(right)),
+            And(isProd(leftRowId, leftColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
             And(
-                SubGroupId(left) eq Const(args.lastIndex),
-                RuleId(bottomRight) eq args.last()
+                SubGroupId(leftRowId, leftColId) eq Const(args.lastIndex),
+                RuleId(bottomRightRowId, bottomRightColId) eq args.last()
             )
         ))
 
-        if (right.col == cols - 1) {
+        if (rightColId == cols - 1) {
             cases.add(Impl(
-                isProd(right),
+                isProd(rightRowId, rightColId),
                 And(
-                    SubGroupId(right) eq Const(args.lastIndex),
-                    RuleId(bottomRight) eq args.last()
+                    SubGroupId(rightRowId, rightColId) eq Const(args.lastIndex),
+                    RuleId(bottomRightRowId, bottomRightColId) eq args.last()
                 )
             ))
         }
@@ -202,9 +220,9 @@ fun prodRuleConstraints(r: Prod): List<Constraints> {
     })
     return rs
 }
-fun Config.allConstraints(): List<Constraints> {
+fun Config.allConstraints(rows: Int, cols: Int): List<Constraints> {
     return listOf(
-        BasicRanges,
+        BasicRanges(grammar, rows, cols),
         StartFields,
         AdjGroupId,
         AdjSubGroupId,
@@ -214,5 +232,115 @@ fun Config.allConstraints(): List<Constraints> {
         SameRuleIdImplSameRuleType,
         SubGroupIdAlwaysZeroForNonProductionRules,
         DiffSubGroupIdIffDiffGroupId
-    ) + grammar.prods.flatMap(::prodRuleConstraints)
+    ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) }
+}
+
+fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
+    val expressions = mutableListOf<Exp>()
+    forEach { c ->
+        when (c) {
+            is Constraints.Single -> {
+                cartesianProduct(rows, cols).map { (rowId, colId) ->
+                    c.handler(rowId, colId)
+                }.toCollection(expressions)
+            }
+            is Constraints.FirstColumn -> {
+                cartesianProduct(rows, 1).map { (rowId, colId) ->
+                    c.handler(rowId, colId)
+                }.toCollection(expressions)
+            }
+            is Constraints.VerticalPair -> {
+                for (rowId in 1 until rows) {
+                    for (colId in 0 until cols) {
+                        expressions.add(c.handler(colId, rowId, rowId - 1))
+                    }
+                }
+            }
+            is Constraints.HorizontalPair -> {
+                for (rowId in 0 until rows) {
+                    for (colId in 1 until cols) {
+                        expressions.add(c.handler(rowId, colId - 1, colId))
+                    }
+                }
+            }
+            is Constraints.Quad -> {
+                for (rowId in 1 until rows) {
+                    for (colId in 1 until cols) {
+                        expressions.add(c.handler(
+                            rowId,     colId - 1, rowId,     colId,
+                            rowId - 1, colId - 1, rowId - 1, colId
+                        ))
+                    }
+                }
+            }
+            is Constraints.Column -> {
+                for (colId in 0 until cols) {
+                    expressions.add(c.handler(colId, (0 until rows).toList()))
+                }
+            }
+            is Constraints.Row -> {
+                for (rowId in 0 until rows) {
+                    expressions.add(c.handler(rowId, (0 until cols).toList()))
+                }
+            }
+        }
+    }
+    return expressions
+}
+
+fun List<Constraints>.validate(cells: Cells, rows: Int, cols: Int): Boolean {
+    val expressions = toExpressions(rows, cols)
+    val failedExp = expressions.firstOrNull { !cells.ev(it) }
+    return failedExp == null
+}
+
+
+private fun Cells.ev(exp: NatExp): Int = when (exp) {
+    is CellField -> {
+        when (exp) {
+            is GroupId -> getGroupId(exp.rowId, exp.colId)
+            is Index -> getIndex(exp.rowId, exp.colId)
+            is RuleId -> getRuleId(exp.rowId, exp.colId)
+            is ProductionTypeId -> getProductionTypeId(exp.rowId, exp.colId)
+            is SubGroupId -> getSubGroupId(exp.rowId, exp.colId)
+        }
+    }
+
+    is Const -> exp.n
+    is Inc -> ev(exp.n) + 1
+    One -> 1
+    Zero -> 0
+}
+
+private fun Cells.ev(e: Exp): Boolean {
+    val res = when (e) {
+        is Or -> e.exps.any(this::ev)
+        is And -> e.exps.all(this::ev)
+        is Eq -> ev(e.lhs) == ev(e.rhs)
+        is Iff -> ev(e.lhs) == ev(e.rhs)
+        is Ge -> ev(e.lhs) >= ev(e.rhs)
+        is Impl -> !ev(e.lhs) || ev(e.rhs)
+        is Le -> ev(e.lhs) <= ev(e.rhs)
+        is Neq -> ev(e.lhs) != ev(e.rhs)
+        is Gt -> ev(e.lhs) > ev(e.rhs)
+        is Lt -> ev(e.lhs) < ev(e.rhs)
+        is Not -> !ev(e.lhs)
+    }
+    return res
+}
+
+private fun cartesianProduct(rows: Int, columns: Int): List<Pair<Int, Int>> {
+    val pairs = mutableListOf<Pair<Int, Int>>()
+    for (rowId in 0 until rows) {
+        for (colId in 0 until columns) {
+            pairs.add(rowId to colId)
+        }
+    }
+    return pairs
+}
+
+fun Cells.validate(vararg cons: Constraints): Boolean {
+    val expressions = cons.toList().toExpressions(rows, cols)
+    val failedExp = expressions.firstOrNull { !ev(it) }
+    return failedExp == null
 }
