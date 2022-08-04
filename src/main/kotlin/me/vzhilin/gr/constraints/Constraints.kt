@@ -68,26 +68,26 @@ fun BasicRanges(g: Grammar, rows: Int, cols: Int) = Constraints.Single { rowId, 
         groupId ge Zero, groupId le Const(cols - 1),
         subGroupId ge Zero, subGroupId le Const(cols - 1),
         index ge Zero, index le Const(cols - 1),
-    )
+    ).label("BasicRanges")
 }
 
 val StartFields = Constraints.FirstColumn { rowId, colId ->
     And(Eq(GroupId(rowId, colId), Zero),
         Eq(SubGroupId(rowId, colId), Zero),
-        Eq(Index(rowId, colId), Zero))
+        Eq(Index(rowId, colId), Zero)).label("StartFields")
 }
 
 fun FirstRow(g: Grammar, input: String) = Constraints.FirstRow { colId ->
     And(
         RuleId(0, colId) eq Const(g[input[colId]].id),
         GroupId(0, colId) eq Const(colId)
-    )
+    ).label("FirstRow")
 }
 
 val AdjGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int ->
     val leftGroupId = GroupId(rowId, leftColId)
     val rightGroupId = GroupId(rowId, rightColId)
-    Or(leftGroupId eq rightGroupId, Inc(leftGroupId) eq rightGroupId)
+    Or(leftGroupId eq rightGroupId, Inc(leftGroupId) eq rightGroupId).label("AdjGroupId")
 }
 
 // left.groupId = right.groupId => right.subGroupId = left.subGroupId + 1 || right.subGroupId = 0
@@ -100,7 +100,7 @@ val AdjSubGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  ri
         Impl(leftGroupId eq rightGroupId,
             Or(Inc(leftSubGroupId) eq rightSubGroupId, leftSubGroupId eq rightSubGroupId)),
         Impl(leftGroupId neq rightGroupId, Zero eq rightSubGroupId)
-    )
+    ).label("AdjSubGroupId")
 }
 
 // left.groupId = right.groupId => rightIndex = leftIndex + 1
@@ -112,29 +112,29 @@ val AdjCellIndex = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rig
     And(
         Impl(leftGroupId eq rightGroupId, Inc(leftIndex) eq rightIndex),
         Impl(leftGroupId neq rightGroupId, rightIndex eq Zero)
-    )
+    ).label("AdjCellIndex")
 }
 
 val DontDivideGroup = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, rowIdBottom: Int ->
-    Impl(Index(rowIdUpper, colId) neq Zero, Index(rowIdBottom, colId) neq Zero)
+    Impl(Index(rowIdBottom, colId) neq Zero, Index(rowIdUpper, colId) neq Zero).label("DontDivideGroup")
 }
 
 val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
         GroupId(rowId, leftColId) eq GroupId(rowId, rightColId),
         RuleId(rowId, leftColId) eq RuleId(rowId, rightColId)
-    )
+    ).label("SameGroupIdImplSameRuleId")
 }
 
 val SameRuleIdImplSameRuleType = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
         RuleId(rowId, leftColId) eq RuleId(rowId, rightColId),
         ProductionTypeId(rowId, leftColId) eq ProductionTypeId(rowId, rightColId)
-    )
+    ).label("SameRuleIdImplSameRuleType")
 }
 
 val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Single { rowId, colId ->
-    Impl(ProductionTypeId(rowId, colId) neq PROD, SubGroupId(rowId, colId) eq Zero)
+    Impl(ProductionTypeId(rowId, colId) neq PROD, SubGroupId(rowId, colId) eq Zero).label("SubGroupIdAlwaysZeroForNonProductionRules")
 }
 
 val DiffSubGroupIdIffDiffGroupId = Constraints.Quad {
@@ -147,7 +147,7 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad {
             SubGroupId(leftRowId, leftColId) eq SubGroupId(rightRowId, rightColId),
             GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
         )
-    )
+    ).label("DiffSubGroupIdIffDiffGroupId")
 }
 
 fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
@@ -161,26 +161,37 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
     rs.add(Constraints.Quad { leftRowId, leftColId, rightRowId, rightColId,
                               bottomLeftRowId, bottomLeftColId, bottomRightRowId, bottomRightColId ->
 
-        val orExp = Or(args.zipWithNext().mapIndexed {
-                index, (lhs, rhs) -> And(
-            RuleId(bottomLeftRowId, bottomLeftColId) eq lhs,
-            RuleId(bottomRightRowId, bottomRightColId) eq rhs,
-            SubGroupId(leftRowId, leftColId) eq Const(index),
-            SubGroupId(rightRowId, leftColId) eq Const(index + 1)
-        )
+        val orExp = Or(args.zipWithNext().mapIndexed { index, (lhs, rhs) ->
+            And(
+                RuleId(bottomLeftRowId, bottomLeftColId) eq lhs,
+                RuleId(bottomRightRowId, bottomRightColId) eq rhs,
+                SubGroupId(leftRowId, leftColId) eq Const(index),
+                SubGroupId(rightRowId, rightColId) eq Const(index + 1)
+            ).label("ProdMiddleCase")
         })
         val cases = mutableListOf<Exp>()
 
         // start
-        cases.add(Impl(
-            And(isProd(rightRowId, rightColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
-            And(
-                SubGroupId(rightRowId, rightColId) eq Zero,
-                RuleId(bottomRightRowId, bottomRightColId) eq args.first()
-            )))
+        cases.add(
+            Impl(
+                And(isProd(rightRowId, rightColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
+                And(
+                    SubGroupId(rightRowId, rightColId) eq Zero,
+                    RuleId(bottomRightRowId, bottomRightColId) eq args.first()
+                )
+            ).label("ProdStart")
+        )
 
         if (leftColId == 0) {
-            cases.add(Impl(isProd(leftRowId, leftColId), And(SubGroupId(leftRowId, leftColId) eq Zero, RuleId(bottomLeftRowId, bottomLeftColId) eq args.first())))
+            cases.add(
+                Impl(
+                    isProd(leftRowId, leftColId),
+                    And(
+                        SubGroupId(leftRowId, leftColId) eq Zero,
+                        RuleId(bottomLeftRowId, bottomLeftColId) eq args.first()
+                    )
+                ).label("ProdLeftCorner")
+            )
         }
 
         // middle
@@ -189,7 +200,8 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
                 And(
                     isProd(leftRowId, leftColId),
                     isProd(rightRowId, rightColId),
-                    GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)),
+                    GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
+                ),
                 Or(
                     And(
                         SubGroupId(leftRowId, leftColId) eq SubGroupId(rightRowId, rightColId),
@@ -201,29 +213,33 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
                         orExp
                     )
                 )
-            )
+            ).label("ProdMiddle")
         )
 
         // finish
-        cases.add(Impl(
-            And(isProd(leftRowId, leftColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
-            And(
-                SubGroupId(leftRowId, leftColId) eq Const(args.lastIndex),
-                RuleId(bottomRightRowId, bottomRightColId) eq args.last()
-            )
-        ))
+        cases.add(
+            Impl(
+                And(isProd(leftRowId, leftColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
+                And(
+                    SubGroupId(leftRowId, leftColId) eq Const(args.lastIndex),
+                    RuleId(bottomLeftRowId, bottomLeftColId) eq args.last()
+                )
+            ).label("ProdFinish")
+        )
 
         if (rightColId == cols - 1) {
-            cases.add(Impl(
-                isProd(rightRowId, rightColId),
-                And(
-                    SubGroupId(rightRowId, rightColId) eq Const(args.lastIndex),
-                    RuleId(bottomRightRowId, bottomRightColId) eq args.last()
-                )
-            ))
+            cases.add(
+                Impl(
+                    isProd(rightRowId, rightColId),
+                    And(
+                        SubGroupId(rightRowId, rightColId) eq Const(args.lastIndex),
+                        RuleId(bottomRightRowId, bottomRightColId) eq args.last()
+                    )
+                ).label("ProdRightCorner")
+            )
         }
 
-        And(cases)
+        And(cases).label("Prod")
     })
     return rs
 }
@@ -232,7 +248,7 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
     return emptyList()
 }
 
-fun Config.allConstraints(rows: Int, input: String): List<Constraints> {
+fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints> {
     val cols = input.length
     return listOf(
         BasicRanges(grammar, rows, cols),

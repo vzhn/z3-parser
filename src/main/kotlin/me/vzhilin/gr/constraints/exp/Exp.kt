@@ -74,9 +74,14 @@ data class Neq(val lhs: NatExp, val rhs: NatExp): Exp() {
         return "$lhs != $rhs"
     }
 }
-data class Impl(val lhs: Exp, val rhs: Exp): Exp() {
+data class Impl(val label: String = "", val lhs: Exp, val rhs: Exp): Exp() {
+    constructor(lhs: Exp, rhs: Exp): this("", lhs, rhs)
     override fun toString(): String {
         return "$lhs => $rhs"
+    }
+
+    fun label(label: String): Impl {
+        return Impl(label, lhs, rhs)
     }
 }
 data class Iff(val lhs: Exp, val rhs: Exp): Exp() {
@@ -84,17 +89,28 @@ data class Iff(val lhs: Exp, val rhs: Exp): Exp() {
         return "$lhs <=> $rhs"
     }
 }
-data class Or(val exps: List<Exp>): Exp() {
-    constructor(vararg exps: Exp): this(exps.toList())
+data class Or(val label: String = "", val exps: List<Exp>): Exp() {
+    constructor(vararg exps: Exp): this("", exps.toList())
+    constructor(exps: List<Exp>): this("", exps)
 
     override fun toString(): String {
        return exps.joinToString(" || ")
     }
+
+    fun label(label: String): Or {
+        return Or(label, exps)
+    }
 }
-data class And(val exps: List<Exp>): Exp() {
-    constructor(vararg exps: Exp): this(exps.toList())
+data class And(val label: String = "", val exps: List<Exp>): Exp() {
+    constructor(vararg exps: Exp): this("", exps.toList())
+    constructor(exps: List<Exp>): this("", exps)
+
     override fun toString(): String {
         return exps.joinToString(" && ")
+    }
+
+    fun label(label: String): And {
+        return And(label, exps)
     }
 }
 data class Not(val lhs: Exp): Exp() {
