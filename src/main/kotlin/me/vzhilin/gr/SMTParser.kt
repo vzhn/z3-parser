@@ -9,10 +9,10 @@ import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
 
-sealed class SMTParserResult {
-    object NoSolutions: SMTParserResult()
-    object NotEnoughRows: SMTParserResult()
-    data class Solution(val derivation: List<DerivationStep>): SMTParserResult()
+sealed class SMTParsingResult {
+    object NoSolutions: SMTParsingResult()
+    object NotEnoughRows: SMTParsingResult()
+    data class Solution(val derivation: List<DerivationStep>): SMTParsingResult()
 }
 
 class SMTParser(
@@ -22,15 +22,15 @@ class SMTParser(
 ) {
     private val columns = input.length
 
-    fun parse(): SMTParserResult {
+    fun parse(): SMTParsingResult {
         val config = Config(grammar, rows, columns)
         val constraints = config.allConstraints(rows, columns)
         val exps = constraints.toExpressions(rows, columns)
         val smt = SMTRoutine(rows, columns, exps)
         return when (val rs = smt.solve()) {
-            is SMTResult.Satisfiable -> SMTParserResult.Solution(rs.cells.toDerivation(grammar))
-            SMTResult.UNKNOWN -> SMTParserResult.NoSolutions
-            SMTResult.UNSAT -> SMTParserResult.NoSolutions
+            is SMTResult.Satisfiable -> SMTParsingResult.Solution(rs.cells.toDerivation(grammar))
+            SMTResult.UNKNOWN -> SMTParsingResult.NoSolutions
+            SMTResult.UNSAT -> SMTParsingResult.NoSolutions
         }
     }
 }
