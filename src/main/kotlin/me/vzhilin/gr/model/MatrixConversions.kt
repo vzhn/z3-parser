@@ -5,7 +5,6 @@ import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 
 fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
-    // TODO validate first row
     val inputString = (0 until cols).map {
         (grammar[getRuleId(0, it)] as Term).ch
     }.let { String(it.toCharArray()) }
