@@ -28,9 +28,7 @@ import me.vzhilin.gr.constraints.exp.eq
 import me.vzhilin.gr.constraints.exp.ge
 import me.vzhilin.gr.constraints.exp.le
 import me.vzhilin.gr.constraints.exp.neq
-import me.vzhilin.gr.rules.Grammar
-import me.vzhilin.gr.rules.Prod
-import me.vzhilin.gr.rules.Rule
+import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 
 typealias HorizontalHandler = (rowId: Int, leftColId: Int, rightColId: Int) -> Exp
@@ -38,6 +36,7 @@ typealias VerticalHandler = (colId: Int, rowIdUpper: Int, rowIdBottom: Int) -> E
 typealias CellHandler = (rowId: Int, colId: Int) -> Exp
 typealias ColumnHandler = (columnId: Int, rowIds: List<Int>) -> Exp
 typealias FirstColumnHandler = (rowId: Int, colId: Int) -> Exp
+typealias FirstRowHandler = (colId: Int) -> Exp
 typealias RowHandler = (rowId: Int, colIds: List<Int>) -> Exp
 typealias QuadHandler = (
     leftColId: Int, leftRowId: Int,
@@ -48,6 +47,7 @@ typealias QuadHandler = (
 
 sealed class Constraints {
     data class FirstColumn(val handler: FirstColumnHandler): Constraints()
+    data class FirstRow(val handler: FirstRowHandler): Constraints()
     data class HorizontalPair(val handler: HorizontalHandler): Constraints()
     data class VerticalPair(val handler: VerticalHandler): Constraints()
     data class Quad(val handler: QuadHandler): Constraints()
@@ -75,6 +75,13 @@ val StartFields = Constraints.FirstColumn { rowId, colId ->
     And(Eq(GroupId(rowId, colId), Zero),
         Eq(SubGroupId(rowId, colId), Zero),
         Eq(Index(rowId, colId), Zero))
+}
+
+fun FirstRow(g: Grammar, input: String) = Constraints.FirstRow { colId ->
+    And(
+        RuleId(0, colId) eq Const(g[input[colId]].id),
+        GroupId(0, colId) eq Const(colId)
+    )
 }
 
 val AdjGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int ->
@@ -220,10 +227,17 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
     })
     return rs
 }
-fun Config.allConstraints(rows: Int, cols: Int): List<Constraints> {
+
+fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
+    return emptyList()
+}
+
+fun Config.allConstraints(rows: Int, input: String): List<Constraints> {
+    val cols = input.length
     return listOf(
         BasicRanges(grammar, rows, cols),
         StartFields,
+        FirstRow(grammar, input),
         AdjGroupId,
         AdjSubGroupId,
         AdjCellIndex,
@@ -231,8 +245,9 @@ fun Config.allConstraints(rows: Int, cols: Int): List<Constraints> {
         SameGroupIdImplSameRuleId,
         SameRuleIdImplSameRuleType,
         SubGroupIdAlwaysZeroForNonProductionRules,
-        DiffSubGroupIdIffDiffGroupId
-    ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) }
+        DiffSubGroupIdIffDiffGroupId,
+    ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) } +
+        grammar.sums.flatMap { sumRuleConstraints(it, rows, cols) }
 }
 
 fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
@@ -281,6 +296,11 @@ fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
             is Constraints.Row -> {
                 for (rowId in 0 until rows) {
                     expressions.add(c.handler(rowId, (0 until cols).toList()))
+                }
+            }
+            is Constraints.FirstRow -> {
+                for (colId in 0 until cols) {
+                    expressions.add(c.handler(colId))
                 }
             }
         }

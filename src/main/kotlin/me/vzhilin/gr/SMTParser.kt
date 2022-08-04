@@ -17,20 +17,20 @@ sealed class SMTParsingResult {
 
 class SMTParser(
     private val grammar: Grammar,
-    input: String,
+    private val input: String,
     private val rows: Int
 ) {
     private val columns = input.length
 
     fun parse(): SMTParsingResult {
         val config = Config(grammar, rows, columns)
-        val constraints = config.allConstraints(rows, columns)
+        val constraints = config.allConstraints(rows, input)
         val exps = constraints.toExpressions(rows, columns)
         val smt = SMTRoutine(rows, columns, exps)
         return when (val rs = smt.solve()) {
             is SMTResult.Satisfiable -> SMTParsingResult.Solution(rs.cells.toDerivation(grammar))
-            SMTResult.UNKNOWN -> SMTParsingResult.NoSolutions
-            SMTResult.UNSAT -> SMTParsingResult.NoSolutions
+            SMTResult.Unknown -> SMTParsingResult.NoSolutions
+            SMTResult.Unsat -> SMTParsingResult.NoSolutions
         }
     }
 }

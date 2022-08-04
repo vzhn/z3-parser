@@ -1,20 +1,9 @@
 package me.vzhilin.gr.next.constraints
 
-import me.vzhilin.gr.constraints.AdjCellIndex
-import me.vzhilin.gr.constraints.AdjGroupId
-import me.vzhilin.gr.constraints.AdjSubGroupId
-import me.vzhilin.gr.constraints.BasicRanges
-import me.vzhilin.gr.constraints.Config
-import me.vzhilin.gr.constraints.DiffSubGroupIdIffDiffGroupId
-import me.vzhilin.gr.constraints.DontDivideGroup
-import me.vzhilin.gr.constraints.SameGroupIdImplSameRuleId
-import me.vzhilin.gr.constraints.SameRuleIdImplSameRuleType
-import me.vzhilin.gr.constraints.StartFields
-import me.vzhilin.gr.constraints.SubGroupIdAlwaysZeroForNonProductionRules
+import me.vzhilin.gr.constraints.*
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.BYPASS
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
-import me.vzhilin.gr.constraints.validate
 import me.vzhilin.gr.simpleGrammar
 import me.vzhilin.gr.smt.Cells
 import kotlin.test.Test
@@ -238,4 +227,12 @@ class ConstraintTests {
             it.setSubGroupId(0, arrayOf(0, 0))
         }.validate(DiffSubGroupIdIffDiffGroupId))
     }
+
+//    @Test
+//    fun `first row should have only single populated groups`() {
+//        assertFalse(Cells(1, 4).also {
+//            it.setGroupId(0, arrayOf(0, 0, 0, 0))
+//            it.setRuleId(0, arrayOf(g['a'].id, g['b'].id, g['x'].id, g['y'].id))
+//        }.validate(FirstRow(g)))
+//    }
 }

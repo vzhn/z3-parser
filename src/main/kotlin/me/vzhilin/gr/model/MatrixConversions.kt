@@ -26,12 +26,9 @@ fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
         }
 
         if (rowId == rows - 1) {
-            if (productionRules.isNotEmpty()) {
-                throw IllegalArgumentException("rowId: $rowId: expected no productions in last rule")
-            }
             DerivationStep.Tail(symbols)
         } else {
-            if (productionRules.size != 1) {
+            if (rowId > 0 && productionRules.size != 1) {
                 throw IllegalArgumentException("rowId: $rowId: expected one production rule per row, got: ${productionRules.size}")
             }
             val productionRule = productionRules.values.first()

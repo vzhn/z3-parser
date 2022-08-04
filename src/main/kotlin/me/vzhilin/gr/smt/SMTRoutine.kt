@@ -73,8 +73,8 @@ data class Cells(
 }
 
 sealed class SMTResult {
-    object UNSAT: SMTResult()
-    object UNKNOWN: SMTResult()
+    object Unsat: SMTResult()
+    object Unknown: SMTResult()
     data class Satisfiable(
         val cells: Cells
     ): SMTResult()
@@ -90,9 +90,9 @@ class SMTRoutine(
     fun solve(): SMTResult {
         val solver = context.mkSolver("LIA")
         solver.add(*exps.map { convBool(it) }.toTypedArray())
-        when (solver.check()!!) {
-            Status.UNSATISFIABLE -> TODO()
-            Status.UNKNOWN -> TODO()
+        return when (solver.check()!!) {
+            Status.UNSATISFIABLE -> SMTResult.Unsat
+            Status.UNKNOWN -> SMTResult.Unknown
             Status.SATISFIABLE -> {
                 return SMTResult.Satisfiable(extractModel(solver.model))
             }
@@ -122,7 +122,7 @@ class SMTRoutine(
         return n.substring(start, end).trim().toInt()
     }
 
-    fun extractModel(model: Model): Cells {
+    private fun extractModel(model: Model): Cells {
         val cells = Cells(rows, cols)
 
         model.constDecls.forEach { decl ->
