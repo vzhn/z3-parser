@@ -1,6 +1,5 @@
 package me.vzhilin.gr
 
-import me.vzhilin.gr.constraints.Config
 import me.vzhilin.gr.constraints.allConstraints
 import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
@@ -23,8 +22,7 @@ class SMTParser(
     private val columns = input.length
 
     fun parse(): SMTParsingResult {
-        val config = Config(grammar, rows, columns)
-        val constraints = config.allConstraints(rows, input)
+        val constraints = allConstraints(grammar, rows, input)
         val exps = constraints.toExpressions(rows, columns)
         val smt = SMTRoutine(rows, columns, exps)
         return when (val rs = smt.solve()) {

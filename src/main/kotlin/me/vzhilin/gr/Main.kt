@@ -3,7 +3,6 @@ package me.vzhilin.gr
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
-import me.vzhilin.gr.report.writeSvg
 import me.vzhilin.gr.rules.*
 import java.io.File
 

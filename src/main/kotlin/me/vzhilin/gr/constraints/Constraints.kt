@@ -21,6 +21,7 @@ import me.vzhilin.gr.constraints.exp.One
 import me.vzhilin.gr.constraints.exp.Or
 import me.vzhilin.gr.constraints.exp.ProductionTypeId
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
 import me.vzhilin.gr.constraints.exp.RuleId
 import me.vzhilin.gr.constraints.exp.SubGroupId
 import me.vzhilin.gr.constraints.exp.Zero
@@ -33,7 +34,7 @@ import me.vzhilin.gr.smt.Cells
 
 typealias HorizontalHandler = (rowId: Int, leftColId: Int, rightColId: Int) -> Exp
 typealias VerticalHandler = (colId: Int, rowIdUpper: Int, rowIdBottom: Int) -> Exp
-typealias CellHandler = (rowId: Int, colId: Int) -> Exp
+typealias SingleHandler = (rowId: Int, colId: Int) -> Exp
 typealias ColumnHandler = (columnId: Int, rowIds: List<Int>) -> Exp
 typealias FirstColumnHandler = (rowId: Int, colId: Int) -> Exp
 typealias FirstRowHandler = (colId: Int) -> Exp
@@ -53,7 +54,7 @@ sealed class Constraints {
     data class Quad(val handler: QuadHandler): Constraints()
     data class Column(val handler: ColumnHandler): Constraints()
     data class Row(val handler: RowHandler): Constraints()
-    data class Single(val handler: CellHandler): Constraints()
+    data class Single(val handler: SingleHandler): Constraints()
 }
 
 fun BasicRanges(g: Grammar, rows: Int, cols: Int) = Constraints.Single { rowId, colId ->
@@ -245,7 +246,16 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
 }
 
 fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
-    return emptyList()
+    val args = s.components.map(Rule::id).map(::Const)
+    fun isSum(rowId: Int, colId: Int) = And(
+        RuleId(rowId, colId) eq Const(s.id),
+        ProductionTypeId(rowId, colId) eq SUM
+    )
+
+    return listOf(Constraints.VerticalPair { colId, upperRowId, bottomRowId ->
+        val orExps = args.map { optionRuleId -> RuleId(bottomRowId, colId) eq optionRuleId }
+        Impl(isSum(upperRowId, colId), Or(orExps))
+    })
 }
 
 fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints> {
