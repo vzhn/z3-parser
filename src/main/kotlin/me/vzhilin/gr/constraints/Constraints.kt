@@ -247,6 +247,13 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
     return listOf(Constraints.VerticalPair { colId, upperRowId, bottomRowId ->
         val orExps = args.map { optionRuleId -> RuleId(bottomRowId, colId) eq optionRuleId }
         Impl(isSum(upperRowId, colId), Or(orExps))
+    }, Constraints.Quad { leftColId: Int, leftRowId: Int, rightColId: Int, rightRowId: Int,
+                          bottomLeftColId: Int, bottomLeftRowId: Int, bottomRightColId: Int, bottomRightRowId: Int ->
+        Impl(And(
+            isSum(leftRowId, leftColId),
+            isSum(rightRowId, rightColId),
+            GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
+        ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId))
     })
 }
 
