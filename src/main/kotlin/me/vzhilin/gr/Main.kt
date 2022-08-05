@@ -33,7 +33,11 @@ fun print(result: SMTParsingResult) {
         SMTParsingResult.NoSolutions -> "no solutions"
         SMTParsingResult.NotEnoughRows -> "not enough rows"
         is SMTParsingResult.Solution -> {
-            result.derivation.joinToString("\n") { step -> when (step) {
+            val leftColumn = mutableListOf<String>()
+            val rightColumn = mutableListOf<String>()
+            var tail = ""
+
+            result.derivation.forEach { step -> when (step) {
                     is DerivationStep.Middle -> {
                         val substitutions = step.substitutions.joinToString(" ") {
                             val name = it.first.name
@@ -47,13 +51,21 @@ fun print(result: SMTParsingResult) {
                             "${name}($range)"
                         }
 
-                        "${asString(step.input)} # $substitutions"
+                        leftColumn.add(asString(step.input))
+                        rightColumn.add(substitutions)
                     }
                     is DerivationStep.Tail -> {
-                        asString(step.input)
+                        tail = asString(step.input)
                     }
                 }
             }
+
+            val maxLength = leftColumn.maxOf(String::length)
+            val lines = leftColumn.zip(rightColumn).map { (left, right) ->
+                "$left ${" ".repeat(maxLength - left.length)} # $right"
+            } + tail
+
+            lines.joinToString("\n")
         }
     }
 
