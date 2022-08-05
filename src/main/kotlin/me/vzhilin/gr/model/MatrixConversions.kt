@@ -5,7 +5,42 @@ import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 
 fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
+    fun word(range: IntRange): String {
+        return range.map { colId ->
+            (grammar[getRuleId(0, colId)] as Term).ch
+        }.joinToString("")
+    }
+    (0 until rows).map { rowId ->
+        val groups = (0 until cols).groupBy { colId ->
+            getGroupId(rowId, colId)
+        }
+
+        val symbols = groups.mapValues { (_, vs) ->
+            val ruleId = getOnly(vs.map { getRuleId(rowId, it) })
+            val range = IntRange(vs.first(), vs.last())
+            when (val rule = grammar[ruleId]) {
+                is Prod, is Sum -> NonTerminalDerivation(rule, word(range))
+                is Term -> TerminalDerivation(rule)
+            }
+        }.values.toList()
+
+        if (rowId == rows - 1) {
+            DerivationStep.Tail(symbols)
+        } else {
+            val haveProductions = groups.filterValues { values ->
+                values.all { colId -> getProductionTypeId(rowId, colId) != 0 }
+            }
+            DerivationStep.Middle(symbols, substitutions)
+        }
+    }
     TODO()
+}
+
+private fun getOnly(vs: List<Int>): Int {
+    if (vs.distinct().size != 1) {
+        throw IllegalArgumentException("not distinct collection")
+    }
+    return vs.first()
 }
 
 private fun Cells.validateGroups(rowId: Int, groups: Map<Int, List<Int>>, grammar: Grammar) {
