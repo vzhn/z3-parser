@@ -28,8 +28,7 @@ class DerivationParserTests {
                     TerminalDerivation(g['a']),
                     TerminalDerivation(g['b'])
                 ),
-                g["V"],
-                0..0
+                listOf(g["V"] to 0..0)
             ),
             DerivationStep.Tail(
                 listOf(

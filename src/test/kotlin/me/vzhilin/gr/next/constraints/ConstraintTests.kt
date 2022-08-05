@@ -129,13 +129,18 @@ class ConstraintTests {
     @Test
     fun `dont divide group`() {
         assertFalse(Cells(2, 2).also {
-            it.setIndex(1, arrayOf(0, 1))
-            it.setIndex(0, arrayOf(0, 0))
+            it.setIndex(1, arrayOf(0, 0))
+            it.setIndex(0, arrayOf(0, 1))
         }.validate(DontDivideGroup))
 
         assert(Cells(2, 2).also {
             it.setIndex(1, arrayOf(0, 1))
             it.setIndex(0, arrayOf(0, 1))
+        }.validate(DontDivideGroup))
+
+        assert(Cells(2, 2).also {
+            it.setIndex(1, arrayOf(0, 1))
+            it.setIndex(0, arrayOf(0, 0))
         }.validate(DontDivideGroup))
     }
 

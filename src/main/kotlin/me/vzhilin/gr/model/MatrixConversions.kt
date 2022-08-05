@@ -5,48 +5,7 @@ import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 
 fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
-    val inputString = (0 until cols).map {
-        (grammar[getRuleId(0, it)] as Term).ch
-    }.let { String(it.toCharArray()) }
-
-    return (0 until rows).map { rowId ->
-        val groups = (0 until cols).groupBy { colId -> getGroupId(rowId, colId) }
-        validateGroups(rowId, groups, grammar)
-
-        val productionRules = groups.filterValues { it -> it.any { colId -> getProductionTypeId(rowId, colId) != ProductionTypeId.BYPASS.n } }
-        val symbols = groups.map { (_, groupedCells) ->
-            val groupRuleId = getRuleId(rowId, groupedCells.first())
-
-            val symbolRule = grammar[groupRuleId]
-            val word = groupedCells.map { colId -> inputString[colId] }.joinToString("")
-            when (symbolRule) {
-                is Prod, is Sum -> NonTerminalDerivation(symbolRule, word)
-                is Term -> TerminalDerivation(symbolRule)
-            }
-        }
-
-        if (rowId == rows - 1) {
-            DerivationStep.Tail(symbols)
-        } else {
-            if (rowId > 0 && productionRules.size != 1) {
-                throw IllegalArgumentException("rowId: $rowId: expected one production rule per row, got: ${productionRules.size}")
-            }
-            val productionRule = productionRules.values.first()
-            val productionRuleTypes = productionRule.map { colId -> getProductionTypeId(rowId, colId) }.distinct()
-            if (productionRuleTypes.size != 1) {
-                throw IllegalArgumentException("rowId: $rowId: having different 'prodTypeId' in same group")
-            }
-
-            val ruleIds = productionRule.map { colId -> getRuleId(rowId, colId) }.distinct()
-            if (ruleIds.size != 1) {
-                throw IllegalArgumentException("rowId: $rowId: having different 'ruleId' in same group")
-            }
-
-            val rule = grammar[ruleIds.first()]
-            val range = productionRule.first()..productionRule.last()
-            DerivationStep.Middle(symbols, rule, range)
-        }
-    }
+    TODO()
 }
 
 private fun Cells.validateGroups(rowId: Int, groups: Map<Int, List<Int>>, grammar: Grammar) {

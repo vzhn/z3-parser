@@ -16,8 +16,7 @@ sealed class DerivationStep {
     abstract val input: List<DerivationSymbol>
     data class Middle(
         override val input: List<DerivationSymbol>,
-        val substitutionRule: Rule,
-        val substitutionRange: IntRange
+        val substitutions: List<Pair<Rule, IntRange>>
     ): DerivationStep()
 
     data class Tail(
@@ -34,28 +33,29 @@ fun Grammar.parseDerivation(input: String): List<DerivationStep> {
         if (line.contains('#')) {
             val (left, middle) = line.split('#')
             val leftSymbols = parseSymbols(left.trim())
-            val (rule, range) = parseMiddle(middle.trim())
-            DerivationStep.Middle(leftSymbols, rule, range)
+            DerivationStep.Middle(leftSymbols, parseMiddle(middle.trim()))
         } else {
             DerivationStep.Tail(parseSymbols(line.trim()))
         }
     }
 }
 
-private fun Grammar.parseMiddle(input: String): Pair<Rule, IntRange> {
-    val p1 = input.indexOf('(')
-    val p2 = input.indexOf(')')
-    val range = input.substring(p1 + 1, p2)
-    val name = input.substring(0, p1)
-    val r = if (range.contains(':')) {
-        val a = range.substring(0, range.indexOf(':')).toInt()
-        val b = range.substring(range.indexOf(':') + 1).toInt()
-        a..b
-    } else {
-        val a = range.toInt()
-        a..a
+private fun Grammar.parseMiddle(input: String): List<Pair<Rule, IntRange>> {
+    return input.split(' ').map { word ->
+        val p1 = word.indexOf('(')
+        val p2 = word.indexOf(')')
+        val range = word.substring(p1 + 1, p2)
+        val name = word.substring(0, p1)
+        val r = if (range.contains(':')) {
+            val a = range.substring(0, range.indexOf(':')).toInt()
+            val b = range.substring(range.indexOf(':') + 1).toInt()
+            a..b
+        } else {
+            val a = range.toInt()
+            a..a
+        }
+        get(name) to r
     }
-    return get(name) to r
 }
 
 private fun Grammar.parseSymbols(input: String): List<DerivationSymbol> {
