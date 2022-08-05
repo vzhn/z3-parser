@@ -18,8 +18,8 @@ class DerivationParserTests {
         """.trimIndent())
 
         val derivationB = g.parseDerivation("""
-            'a' 'b' # V(0:0)
-            V('a') 'b'
+            'a' 'b' # V(0:0) V(1)
+            V('a') V('a')
         """.trimIndent())
 
         val expected = listOf(

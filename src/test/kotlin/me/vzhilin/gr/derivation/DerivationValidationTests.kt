@@ -96,17 +96,17 @@ class DerivationValidator {
         return result(steps.zipWithNext().mapIndexed  {
             index, (a, b) ->
             val left = a as DerivationStep.Middle
-            checkReplacement(left.input, left.substitutionRule, left.substitutionRange, b.input, index)
+            checkReplacement(left.input, left.substitutions, b.input, index)
         })
     }
 
     private fun checkReplacement(
         left: List<DerivationSymbol>,
-        rule: Rule,
-        range: IntRange,
+        substitutions: List<Pair<Rule, IntRange>>,
         right: List<DerivationSymbol>,
         lineNumber: Int
     ): DerivationValidationResult {
+
         return when (rule) {
             is Prod -> checkProdDerivation(lineNumber, left, rule, range, right)
             is Sum -> checkSumDerivation(lineNumber, left, rule, range, right)

@@ -33,13 +33,19 @@ fun print(result: SMTParsingResult) {
         is SMTParsingResult.Solution -> {
             result.derivation.joinToString("\n") { step -> when (step) {
                     is DerivationStep.Middle -> {
-                        val (first, last) = step.substitutionRange.first to step.substitutionRange.last
-                        val range = if (first != last) {
-                            "${first}:${last}"
-                        } else {
-                            "$first"
+                        val substitutions = step.substitutions.joinToString(" ") {
+                            val name = it.first.name
+
+                            val (first, last) = it.second.first to it.second.last
+                            val range = if (first != last) {
+                                "${first}:${last}"
+                            } else {
+                                "$first"
+                            }
+                            "${name}($range)"
                         }
-                        "${asString(step.input)} # ${step.substitutionRule.name}($range)"
+
+                        "${asString(step.input)} # $substitutions"
                     }
                     is DerivationStep.Tail -> {
                         asString(step.input)

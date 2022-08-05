@@ -1,6 +1,5 @@
-package me.vzhilin.gr.next.constraints
+package me.vzhilin.gr.constraints
 
-import me.vzhilin.gr.constraints.*
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.BYPASS
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
