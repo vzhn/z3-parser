@@ -1,10 +1,11 @@
 package me.vzhilin.gr.report
 
 import me.vzhilin.gr.rules.Grammar
+import me.vzhilin.gr.smt.Cells
 import java.io.File
 import java.io.PrintWriter
 
-fun writeSvg(file: File, input: String, g: Grammar, data: Map<Int, Map<Pair<Int, Int>, Map<Int, List<Pair<Int, Int>>>>>) {
+fun writeSvg(file: File, input: String, g: Grammar, data: Cells) {
     val container = buildContainer(input, g, data)
     val commands = draw(container)
 
@@ -31,21 +32,29 @@ fun writeSvg(file: File, input: String, g: Grammar, data: Map<Int, Map<Pair<Int,
 fun buildContainer(
     input: String,
     g: Grammar,
-    data: Map<Int, Map<Pair<Int, Int>, Map<Int, List<Pair<Int, Int>>>>>
+    data: Cells
 ): Container {
-    return Container(ContainerType.COL, "", "", data.map { (rowId, rowData) ->
-        Container(ContainerType.ROW, "row #$rowId", "", rowData.map { (groupIdRuleId, groupData) ->
-            val (groupId, ruleId) = groupIdRuleId
-            val rule = g.rule(ruleId)
-            Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", groupData.map { (subGroupId, cells) ->
-                Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", cells.map { cell ->
-                    Container(ContainerType.CELL, "#${cell.first},${cell.second}", input[cell.first].toString(), emptyList())
+    fun rowContainer(rowId: Int): Container {
+        val groupIdToGroupCells = (0 until data.cols).groupBy { colId -> data.getGroupId(rowId, colId) }
+        return Container(ContainerType.ROW, "row #$rowId", "", groupIdToGroupCells.map { (groupId, groupCells) ->
+            val ruleId = data.getRuleId(rowId, groupCells.first())
+            val rule = g[ruleId]
+
+            val subGroupIdToSubgroupCells = groupCells.groupBy { colId -> data.getSubGroupId(rowId, colId) }
+
+            Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", subGroupIdToSubgroupCells.map { (subGroupId, colIds) ->
+                Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", colIds.map { colId ->
+                    Container(ContainerType.CELL, "#${rowId},${colId}", input[colId].toString(), emptyList())
                 })
             })
-        }).also {
-            it.fill = "#D5E8D4"
-        }
-    })
+        })
+    }
+
+    fun rootContainer() = Container(ContainerType.COL, "", "", (0 until data.rows).map(::rowContainer)).also {
+        it.fill = "#D5E8D4"
+    }
+
+    return rootContainer()
 }
 
 data class SVGRect(

@@ -258,6 +258,17 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
     })
 }
 
+fun termRuleConstraints(t: Term, rows: Int, cols: Int): List<Constraints> {
+    return listOf(
+        Constraints.Single { rowId, colId ->
+            Impl(RuleId(rowId, colId) eq Const(t.id), Index(rowId, colId) eq Zero)
+        },
+        Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
+            Impl(RuleId(rowIdUpper, colId) eq Const(t.id), RuleId(rowIdBottom, colId) eq Const(t.id))
+        }
+    )
+}
+
 fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints> {
     val cols = input.length
     return listOf(
@@ -273,7 +284,8 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints
         SubGroupIdAlwaysZeroForNonProductionRules,
         DiffSubGroupIdIffDiffGroupId,
     ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) } +
-        grammar.sums.flatMap { sumRuleConstraints(it, rows, cols) }
+        grammar.sums.flatMap { sumRuleConstraints(it, rows, cols) } +
+        grammar.terms.flatMap { termRuleConstraints(it, rows, cols) }
 }
 
 fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {

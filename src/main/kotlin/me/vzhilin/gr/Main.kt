@@ -27,9 +27,9 @@ fun print(result: SMTParsingResult) {
             }
         }
     }
-    when (result) {
-        SMTParsingResult.NoSolutions -> println("no solutions")
-        SMTParsingResult.NotEnoughRows -> println("not enough rows")
+    val output = when (result) {
+        SMTParsingResult.NoSolutions -> "no solutions"
+        SMTParsingResult.NotEnoughRows -> "not enough rows"
         is SMTParsingResult.Solution -> {
             result.derivation.joinToString("\n") { step -> when (step) {
                     is DerivationStep.Middle -> {
@@ -54,6 +54,8 @@ fun print(result: SMTParsingResult) {
             }
         }
     }
+
+    println(output)
 }
 
 private fun readGrammar(input: String): Grammar {

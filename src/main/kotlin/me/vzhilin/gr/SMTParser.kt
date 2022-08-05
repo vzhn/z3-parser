@@ -3,10 +3,12 @@ package me.vzhilin.gr
 import me.vzhilin.gr.constraints.allConstraints
 import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
+import me.vzhilin.gr.report.writeSvg
 import me.vzhilin.gr.rules.DerivationStep
 import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
+import java.io.File
 
 sealed class SMTParsingResult {
     object NoSolutions: SMTParsingResult()
@@ -26,7 +28,12 @@ class SMTParser(
         val exps = constraints.toExpressions(rows, columns)
         val smt = SMTRoutine(rows, columns, exps)
         return when (val rs = smt.solve()) {
-            is SMTResult.Satisfiable -> SMTParsingResult.Solution(rs.cells.toDerivation(grammar))
+            is SMTResult.Satisfiable -> {
+                val cells = rs.cells
+                writeSvg(File("report.svg"), input, grammar, cells)
+
+                SMTParsingResult.Solution(cells.toDerivation(grammar))
+            }
             SMTResult.Unknown -> SMTParsingResult.NoSolutions
             SMTResult.Unsat -> SMTParsingResult.NoSolutions
         }
