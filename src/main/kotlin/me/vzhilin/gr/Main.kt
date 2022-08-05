@@ -21,13 +21,14 @@ fun main(argv: Array<String>) {
 
 fun print(result: SMTParsingResult) {
     fun asString(list: List<DerivationSymbol>): String {
-        return list.joinToString("") { sym ->
+        return list.joinToString(" ") { sym ->
             when (sym) {
                 is NonTerminalDerivation -> "${sym.rule.name}(\'${sym.word}\')"
                 is TerminalDerivation -> "'${sym.rule.ch}'"
             }
-        }
+        }.replace("' '", "")
     }
+
     val output = when (result) {
         SMTParsingResult.NoSolutions -> "no solutions"
         SMTParsingResult.NotEnoughRows -> "not enough rows"
