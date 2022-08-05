@@ -1,34 +1,8 @@
 package me.vzhilin.gr.constraints
 
-import me.vzhilin.gr.constraints.exp.And
-import me.vzhilin.gr.constraints.exp.CellField
-import me.vzhilin.gr.constraints.exp.Const
-import me.vzhilin.gr.constraints.exp.Eq
-import me.vzhilin.gr.constraints.exp.Exp
-import me.vzhilin.gr.constraints.exp.Ge
-import me.vzhilin.gr.constraints.exp.GroupId
-import me.vzhilin.gr.constraints.exp.Gt
-import me.vzhilin.gr.constraints.exp.Iff
-import me.vzhilin.gr.constraints.exp.Impl
-import me.vzhilin.gr.constraints.exp.Inc
-import me.vzhilin.gr.constraints.exp.Index
-import me.vzhilin.gr.constraints.exp.Le
-import me.vzhilin.gr.constraints.exp.Lt
-import me.vzhilin.gr.constraints.exp.NatExp
-import me.vzhilin.gr.constraints.exp.Neq
-import me.vzhilin.gr.constraints.exp.Not
-import me.vzhilin.gr.constraints.exp.One
-import me.vzhilin.gr.constraints.exp.Or
-import me.vzhilin.gr.constraints.exp.ProductionTypeId
+import me.vzhilin.gr.constraints.exp.*
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
 import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
-import me.vzhilin.gr.constraints.exp.RuleId
-import me.vzhilin.gr.constraints.exp.SubGroupId
-import me.vzhilin.gr.constraints.exp.Zero
-import me.vzhilin.gr.constraints.exp.eq
-import me.vzhilin.gr.constraints.exp.ge
-import me.vzhilin.gr.constraints.exp.le
-import me.vzhilin.gr.constraints.exp.neq
 import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 
@@ -120,6 +94,12 @@ val DontDivideGroup = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, ro
     Impl(Index(rowIdBottom, colId) neq Zero, Index(rowIdUpper, colId) neq Zero).label("DontDivideGroup")
 }
 
+val NonProductionMeansVerticalRuleIdMatch = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, rowIdBottom: Int ->
+    Impl(ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
+        RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
+    )
+}
+
 val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
         GroupId(rowId, leftColId) eq GroupId(rowId, rightColId),
@@ -149,6 +129,18 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad {
             GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
         )
     ).label("DiffSubGroupIdIffDiffGroupId")
+}
+
+fun CommonSumConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
+    val orExps = g.sums.map(Sum::id).map { ruleId -> RuleId(rowId, colId) eq Const(ruleId) }
+
+    Impl(ProductionTypeId(rowId, colId) eq SUM, Or(orExps))
+}
+
+fun CommonProdConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
+        val orExps = g.prods.map(Prod::id).map { ruleId -> RuleId(rowId, colId) eq Const(ruleId) }
+
+    Impl(ProductionTypeId(rowId, colId) eq PROD, Or(orExps))
 }
 
 fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
@@ -262,12 +254,17 @@ fun termRuleConstraints(t: Term, rows: Int, cols: Int): List<Constraints> {
     return listOf(
         Constraints.Single { rowId, colId ->
             Impl(RuleId(rowId, colId) eq Const(t.id), Index(rowId, colId) eq Zero)
-        },
-        Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
-            Impl(RuleId(rowIdUpper, colId) eq Const(t.id), RuleId(rowIdBottom, colId) eq Const(t.id))
         }
     )
 }
+
+val BypassConstraint =
+    Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
+        Impl(
+            ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
+            RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
+        ).label("BypassConstraint")
+    }
 
 fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints> {
     val cols = input.length
@@ -283,6 +280,10 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints
         SameRuleIdImplSameRuleType,
         SubGroupIdAlwaysZeroForNonProductionRules,
         DiffSubGroupIdIffDiffGroupId,
+        NonProductionMeansVerticalRuleIdMatch,
+        BypassConstraint,
+        CommonSumConstraints(grammar),
+        CommonProdConstraints(grammar),
     ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) } +
         grammar.sums.flatMap { sumRuleConstraints(it, rows, cols) } +
         grammar.terms.flatMap { termRuleConstraints(it, rows, cols) }

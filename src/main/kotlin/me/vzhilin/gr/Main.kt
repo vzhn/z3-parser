@@ -10,11 +10,12 @@ fun main(argv: Array<String>) {
     val parser = ArgParser("smt-grammar")
     val grammarFilePath by parser.option(ArgType.String, shortName = "g", description = "Grammar file").required()
     val inputFilePath by parser.option(ArgType.String, shortName = "i", description = "Input file").required()
+    val rows by parser.option(ArgType.Int, shortName = "r", description = "Rows").required()
     parser.parse(argv)
 
-    val g = readGrammar(grammarFilePath)
+    val grammar = readGrammar(grammarFilePath)
     val input = File(inputFilePath).readText().trim()
-    val result = SMTParser(g, input, 4).parse()
+    val result = SMTParser(grammar, input, rows).parse()
     print(result)
 }
 

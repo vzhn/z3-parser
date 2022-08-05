@@ -28,14 +28,18 @@ sealed class CellField: NatExp() {
     abstract val colId: Int
 }
 
+val PRODUCTION_BYPASS = 0
+val PRODUCTION_SUM = 1
+val PRODUCTION_PROD = 2
+
 data class ProductionTypeId(
     override val rowId: Int,
     override val colId: Int
 ): CellField() {
     companion object {
-        val BYPASS = Const(0)
-        val SUM = Const(1)
-        val PROD = Const(2)
+        val BYPASS = Const(PRODUCTION_BYPASS)
+        val SUM = Const(PRODUCTION_SUM)
+        val PROD = Const(PRODUCTION_PROD)
     }
 }
 data class RuleId(override val rowId: Int,

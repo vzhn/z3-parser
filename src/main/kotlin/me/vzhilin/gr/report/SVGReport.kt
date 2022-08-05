@@ -1,5 +1,7 @@
 package me.vzhilin.gr.report
 
+import me.vzhilin.gr.constraints.exp.PRODUCTION_PROD
+import me.vzhilin.gr.constraints.exp.PRODUCTION_SUM
 import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.smt.Cells
 import java.io.File
@@ -44,7 +46,16 @@ fun buildContainer(
 
             Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", subGroupIdToSubgroupCells.map { (subGroupId, colIds) ->
                 Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", colIds.map { colId ->
-                    Container(ContainerType.CELL, "#${rowId},${colId}", input[colId].toString(), emptyList())
+                    val centerText = input[colId].toString()
+                    val topText = "#${rowId},${colId}"  + ": " + data.getProductionTypeId(rowId, colId)
+                    val cell = Container(ContainerType.CELL, topText, centerText, emptyList())
+                    cell.also {
+                        when {
+                            data.getProductionTypeId(rowId, colId) == PRODUCTION_SUM -> it.fill = "lightgreen"
+                            data.getProductionTypeId(rowId, colId) == PRODUCTION_PROD -> it.fill = "lightblue"
+                        }
+                    }
+                    cell
                 })
             })
         })
