@@ -5,6 +5,7 @@ import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
 import me.vzhilin.gr.report.writeSvg
 import me.vzhilin.gr.rules.*
+import me.vzhilin.gr.smt.Cells
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
 import me.vzhilin.gr.snapshot.SolutionSnapshot
@@ -13,50 +14,44 @@ import java.io.File
 
 sealed class SMTParsingResult {
     object NoSolutions: SMTParsingResult()
-    object NotEnoughRows: SMTParsingResult()
-    data class Solution(val derivation: List<DerivationStep>): SMTParsingResult()
-}
-
-class SMTParser(
-    private val grammar: Grammar,
-    private val input: String,
-    private val rows: Int,
-    private val goal: NonTerm?
-) {
-    private val columns = input.length
-    private val solutionSnapshots = mutableListOf<SolutionSnapshot>()
-
-    fun parse(): SMTParsingResult {
-        val constraints = allConstraints(grammar, rows, input, goal)
-        val exps = constraints.toExpressions(rows, columns) + solutionSnapshots.toExpression()
-        val smt = SMTRoutine(rows, columns, exps)
-        return when (val rs = smt.solve()) {
-            is SMTResult.Satisfiable -> {
-                val cells = rs.cells
-                writeSvg(File("report.svg"), input, grammar, cells)
-                solutionSnapshots.add(SolutionSnapshot.of(cells))
-                SMTParsingResult.Solution(cells.toDerivation(grammar))
+    data class Solution(
+        val input: String,
+        val grammar: Grammar,
+        val cells: Cells,
+        val derivation: List<DerivationStep>
+    ): SMTParsingResult() {
+        fun printCells() {
+            val revRows = cells.rs.reversed()
+            fun values(rowId: Int, f: (rowId: Int, colId: Int) -> Int): String {
+                return cells.cs.joinToString(", ") { colId -> f(rowId, colId).toString() }
             }
-            SMTResult.Unknown -> SMTParsingResult.NoSolutions
-            SMTResult.Unsat -> SMTParsingResult.NoSolutions
+
+            fun valuesStr(rowId: Int, f: (colId: Int) -> String): String {
+                return cells.cs.joinToString(", ") { colId -> "\"${f(colId)}\"" }
+            }
+
+            println("val input = \"$input\"")
+            println("with(Cells(${cells.rows}, ${cells.cols})) {")
+            for (rowId in revRows) {
+                println("\tsetRuleId($rowId, grammar, ${valuesStr(rowId) { colId -> cells.getRule(grammar, rowId, colId).name }})")
+            }
+            for (rowId in revRows) { println("\tsetGroupId($rowId, ${values(rowId, cells::getGroupId)})") }
+            for (rowId in revRows) { println("\tsetSubGroupId($rowId, ${values(rowId, cells::getSubGroupId)})") }
+            for (rowId in revRows) { println("\tsetProdTypeId($rowId, ${values(rowId, cells::getProductionTypeId)})") }
+            for (rowId in revRows) { println("\tsetIndex($rowId, ${values(rowId, cells::getIndex)})") }
+            println("}")
         }
-    }
-}
 
-fun SMTParsingResult.print() {
-    fun asString(list: List<DerivationSymbol>): String {
-        return list.joinToString(" ") { sym ->
-            when (sym) {
-                is NonTerminalDerivation -> "${sym.rule.name}(\'${sym.word}\')"
-                is TerminalDerivation -> "'${sym.rule.ch}'"
+        fun printDerivation() {
+            fun asString(list: List<DerivationSymbol>): String {
+                return list.joinToString(" ") { sym ->
+                    when (sym) {
+                        is NonTerminalDerivation -> "${sym.rule.name}(\'${sym.word}\')"
+                        is TerminalDerivation -> "'${sym.rule.ch}'"
+                    }
+                }.replace("' '", "")
             }
-        }.replace("' '", "")
-    }
 
-    val output = when (this) {
-        SMTParsingResult.NoSolutions -> "no solution"
-        SMTParsingResult.NotEnoughRows -> "not enough rows"
-        is SMTParsingResult.Solution -> {
             val leftColumn = mutableListOf<String>()
             val rightColumn = mutableListOf<String>()
             var tail = ""
@@ -87,10 +82,34 @@ fun SMTParsingResult.print() {
             val lines = leftColumn.zip(rightColumn).map { (left, right) ->
                 "$left ${" ".repeat(maxLength - left.length)} # $right"
             } + tail
-
-            lines.joinToString("\n")
+            println(lines.joinToString("\n"))
         }
     }
+}
 
-    println(output)
+class SMTParser(
+    private val grammar: Grammar,
+    private val input: String,
+    private val rows: Int,
+    private val goal: NonTerm?
+) {
+    private var debug: Boolean = false
+    private val columns = input.length
+    private val solutionSnapshots = mutableListOf<SolutionSnapshot>()
+
+    fun parse(): SMTParsingResult {
+        val constraints = allConstraints(grammar, rows, input, goal)
+        val exps = constraints.toExpressions(rows, columns) + solutionSnapshots.toExpression()
+        val smt = SMTRoutine(rows, columns, exps)
+        return when (val rs = smt.solve()) {
+            is SMTResult.Satisfiable -> {
+                val cells = rs.cells
+                writeSvg(File("report.svg"), input, grammar, cells)
+                solutionSnapshots.add(SolutionSnapshot.of(cells))
+                SMTParsingResult.Solution(input, grammar, cells, cells.toDerivation(grammar))
+            }
+            SMTResult.Unknown -> SMTParsingResult.NoSolutions
+            SMTResult.Unsat -> SMTParsingResult.NoSolutions
+        }
+    }
 }

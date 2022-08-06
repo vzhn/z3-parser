@@ -2,6 +2,8 @@ package me.vzhilin.gr.smt
 
 import com.microsoft.z3.*
 import me.vzhilin.gr.constraints.exp.*
+import me.vzhilin.gr.rules.Grammar
+import me.vzhilin.gr.rules.Rule
 
 enum class Fields {
     GroupId,
@@ -15,6 +17,8 @@ data class Cells(
     val rows: Int,
     val cols: Int,
 ) {
+    val rs = 0 until rows
+    val cs = 0 until cols
     private val data: MutableMap<Fields, MutableMap<Pair<Int, Int>, Int>> = mutableMapOf()
     init {
         for (field in Fields.values()) {
@@ -27,6 +31,15 @@ data class Cells(
             }
         }
     }
+
+    fun setRuleId(rowId: Int, g: Grammar, vararg rules: String): Unit = setRuleId(rowId, rules.map { g[it].id }.toTypedArray())
+    fun getRule(g: Grammar, rowId: Int, colId: Int): Rule {
+        return g[getRuleId(rowId, colId)]
+    }
+    fun setGroupId(rowId: Int, vararg ids: Int)    = setGroupId(rowId, ids.toTypedArray())
+    fun setSubGroupId(rowId: Int, vararg ids: Int) = setSubGroupId(rowId, ids.toTypedArray())
+    fun setIndex(rowId: Int, vararg ids: Int)      = setIndex(rowId, ids.toTypedArray())
+    fun setProdTypeId(rowId: Int, vararg ids: Int)   = setProductionTypeId(rowId, ids.toTypedArray())
 
     fun getGroupId(rowId: Int, colId: Int): Int    = data[Fields.GroupId]!![rowId to colId]!!
     fun getSubGroupId(rowId: Int, colId: Int): Int = data[Fields.SubGroupId]!![rowId to colId]!!

@@ -15,6 +15,7 @@ fun main(argv: Array<String>) {
     val rows by parser.option(ArgType.Int, shortName = "r", fullName = "rows", description = "Rows").required()
     val derivationLimit by parser.option(ArgType.Int, shortName = "l", fullName = "limit", description = "derivation limit")
     val goal by parser.option(ArgType.String, fullName = "goal")
+    val debug by parser.option(ArgType.Boolean, fullName = "debug")
     parser.parse(argv)
 
     if (derivationLimit == null) {
@@ -25,14 +26,20 @@ fun main(argv: Array<String>) {
     val grammar = readGrammar(grammarFilePath)
     val input = File(inputFilePath).readText().trim()
     val smtParser = SMTParser(grammar, input, rows, goal?.let { grammar[it] as NonTerm })
+
     var solutionNumber = 1
     while (true) {
         val result = smtParser.parse()
-        println("== derivation #$solutionNumber == ")
-        result.print()
-        println()
+        println("== derivation #$solutionNumber ==")
         if (result !is SMTParsingResult.Solution) {
             break
+        } else {
+            result.printDerivation()
+            if (debug == true) {
+                println("== cells #$solutionNumber ==")
+                result.printCells()
+            }
+            println()
         }
         ++solutionNumber
         if (solutionNumber > (derivationLimit ?: DefaultLimit)) {

@@ -14,10 +14,10 @@ typealias FirstColumnHandler = (rowId: Int, colId: Int) -> Exp
 typealias FirstRowHandler = (colId: Int) -> Exp
 typealias RowHandler = (rowId: Int, colIds: List<Int>) -> Exp
 typealias QuadHandler = (
-    leftColId: Int, leftRowId: Int,
-    rightColId: Int, rightRowId: Int,
-    bottomLeftColId: Int, bottomLeftRowId: Int,
-    bottomRightColId: Int, bottomRightRowId: Int,
+    leftRowId: Int, leftColId: Int,
+    rightRowId: Int, rightColId: Int,
+    bottomLeftRowId: Int, bottomLeftColId: Int,
+    bottomRightRowId: Int, bottomRightColId: Int,
 ) -> Exp
 
 sealed class Constraints {
@@ -264,8 +264,8 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
     return listOf(Constraints.VerticalPair { colId, upperRowId, bottomRowId ->
         val orExps = args.map { optionRuleId -> RuleId(bottomRowId, colId) eq optionRuleId }
         Impl(isSum(upperRowId, colId), Or(orExps))
-    }, Constraints.Quad { leftColId: Int, leftRowId: Int, rightColId: Int, rightRowId: Int,
-                          bottomLeftColId: Int, bottomLeftRowId: Int, bottomRightColId: Int, bottomRightRowId: Int ->
+    }, Constraints.Quad { leftRowId: Int, leftColId: Int, rightRowId: Int, rightColId: Int,
+                          bottomLeftRowId: Int, bottomLeftColId: Int, bottomRightRowId: Int, bottomRightColId: Int ->
         Impl(And(
             isSum(leftRowId, leftColId),
             isSum(rightRowId, rightColId),
@@ -290,7 +290,7 @@ val BypassConstraint =
         ).label("BypassConstraint")
     }
 
-fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm?): List<Constraints> {
+fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm? = null): List<Constraints> {
     val cols = input.length
     return listOf(
         BasicRanges(grammar, rows, cols),
