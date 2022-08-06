@@ -28,11 +28,11 @@ data class Cells(
         }
     }
 
-    fun getGroupId(row: Int, col: Int): Int    = data[Fields.GroupId]!![row to col]!!
-    fun getSubGroupId(row: Int, col: Int): Int = data[Fields.SubGroupId]!![row to col]!!
-    fun getProductionTypeId(row: Int, col: Int): Int = data[Fields.ProductionTypeId]!![row to col]!!
-    fun getRuleId(row: Int, col: Int): Int = data[Fields.RuleId]!![row to col]!!
-    fun getIndex(row: Int, col: Int): Int = data[Fields.Index]!![row to col]!!
+    fun getGroupId(rowId: Int, colId: Int): Int    = data[Fields.GroupId]!![rowId to colId]!!
+    fun getSubGroupId(rowId: Int, colId: Int): Int = data[Fields.SubGroupId]!![rowId to colId]!!
+    fun getProductionTypeId(rowId: Int, colId: Int): Int = data[Fields.ProductionTypeId]!![rowId to colId]!!
+    fun getRuleId(rowId: Int, colId: Int): Int = data[Fields.RuleId]!![rowId to colId]!!
+    fun getIndex(rowId: Int, colId: Int): Int = data[Fields.Index]!![rowId to colId]!!
 
     fun setGroupId(rowId: Int, indices: Array<Int>) {
         if (indices.size != cols) throw IllegalArgumentException("indices.size != cols")
@@ -142,8 +142,8 @@ class SMTRoutine(
         return cells
     }
 
-    private fun mkConst(row: Int, col: Int, field: String): ArithExpr<IntSort> {
-        return context.mkIntConst("${field}(${row},${col})")
+    private fun mkConst(rowId: Int, colId: Int, field: String): ArithExpr<IntSort> {
+        return context.mkIntConst("${field}(${rowId},${colId})")
     }
 
     private fun convNat(e: NatExp): ArithExpr<IntSort> {

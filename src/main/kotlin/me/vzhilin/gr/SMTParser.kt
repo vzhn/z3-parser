@@ -11,6 +11,7 @@ import me.vzhilin.gr.rules.NonTerminalDerivation
 import me.vzhilin.gr.rules.TerminalDerivation
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
+import me.vzhilin.gr.snapshot.SolutionSnapshot
 import java.io.File
 
 sealed class SMTParsingResult {
@@ -25,6 +26,7 @@ class SMTParser(
     private val rows: Int
 ) {
     private val columns = input.length
+    private val solutionSnapthots = mutableListOf<SolutionSnapshot>()
 
     fun parse(): SMTParsingResult {
         val constraints = allConstraints(grammar, rows, input)
