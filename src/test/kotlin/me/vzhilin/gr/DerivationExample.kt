@@ -93,6 +93,55 @@ class DerivationExample {
         return Triple(grammar, input, cells)
     }
 
+    private fun sampleCells3(): Triple<Grammar, String, Cells> {
+        val input = "λx.xλy.yy"
+        val grammar = simpleGrammar()
+        val cells = Cells(8, 9)
+        with(cells) {
+            setRuleId(7, grammar, "T", "T", "T", "T", "T", "T", "T", "T", "T")
+            setRuleId(6, grammar, "ABST", "ABST", "ABST", "ABST", "ABST", "ABST", "ABST", "ABST", "ABST")
+            setRuleId(5, grammar, "λ", "V", ".", "T", "T", "T", "T", "T", "T")
+            setRuleId(4, grammar, "λ", "x", ".", "T", "T", "T", "T", "T", "T")
+            setRuleId(3, grammar, "λ", "x", ".", "V", "ABST", "ABST", "ABST", "ABST", "V")
+            setRuleId(2, grammar, "λ", "x", ".", "V", "λ", "V", ".", "T", "y")
+            setRuleId(1, grammar, "λ", "x", ".", "x", "λ", "y", ".", "V", "y")
+            setRuleId(0, grammar, "λ", "x", ".", "x", "λ", "y", ".", "y", "y")
+            setGroupId(7, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setGroupId(6, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setGroupId(5, 0, 1, 2, 3, 3, 3, 3, 3, 3)
+            setGroupId(4, 0, 1, 2, 3, 4, 4, 4, 4, 5)
+            setGroupId(3, 0, 1, 2, 3, 4, 4, 4, 4, 5)
+            setGroupId(2, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+            setGroupId(1, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+            setGroupId(0, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+            setSubGroupId(7, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setSubGroupId(6, 0, 1, 2, 3, 3, 3, 3, 3, 3)
+            setSubGroupId(5, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setSubGroupId(4, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setSubGroupId(3, 0, 0, 0, 0, 0, 1, 2, 3, 0)
+            setSubGroupId(2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setSubGroupId(1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setSubGroupId(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setProdTypeId(7, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+            setProdTypeId(6, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+            setProdTypeId(5, 0, 1, 0, 0, 0, 0, 0, 0, 0)
+            setProdTypeId(4, 0, 0, 0, 1, 1, 1, 1, 1, 1)
+            setProdTypeId(3, 0, 0, 0, 0, 2, 2, 2, 2, 1)
+            setProdTypeId(2, 0, 0, 0, 1, 0, 1, 0, 1, 0)
+            setProdTypeId(1, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+            setProdTypeId(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setIndex(7, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+            setIndex(6, 0, 1, 2, 3, 4, 5, 6, 7, 8)
+            setIndex(5, 0, 0, 0, 0, 1, 2, 3, 4, 5)
+            setIndex(4, 0, 0, 0, 0, 0, 1, 2, 3, 0)
+            setIndex(3, 0, 0, 0, 0, 0, 1, 2, 3, 0)
+            setIndex(2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setIndex(1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            setIndex(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        }
+        return Triple(grammar, input, cells)
+    }
+
     @Test
     fun test1() {
         val (g, input, cells) = sampleCells1()
@@ -103,6 +152,13 @@ class DerivationExample {
     @Test
     fun test2() {
         val (g, input, cells) = sampleCells2()
+        val constraints = allConstraints(g, cells.rows, input)
+        assertFalse(cells.validate(*constraints.toTypedArray()))
+    }
+
+    @Test
+    fun test3() {
+        val (g, input, cells) = sampleCells3()
         val constraints = allConstraints(g, cells.rows, input)
         assertFalse(cells.validate(*constraints.toTypedArray()))
     }

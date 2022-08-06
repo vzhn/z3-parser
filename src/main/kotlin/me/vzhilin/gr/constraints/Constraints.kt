@@ -282,13 +282,31 @@ fun termRuleConstraints(t: Term, rows: Int, cols: Int): List<Constraints> {
     )
 }
 
-val BypassConstraint =
-    Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
-        Impl(
-            ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
-            RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
-        ).label("BypassConstraint")
-    }
+val BypassConstraints: List<Constraints> =
+    listOf(
+        Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
+            Impl(
+                ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
+                RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
+            ).label("BypassConstraintRuleId")
+        },
+        Constraints.Quad {
+                leftRowId: Int, leftColId: Int, rightRowId: Int, rightColId: Int,
+                bottomLeftRowId: Int, bottomLeftColId: Int, bottomRightRowId: Int, bottomRightColId: Int ->
+
+            Impl(
+                And(
+                    ProductionTypeId(leftRowId, leftColId) eq Const(PRODUCTION_BYPASS),
+                    ProductionTypeId(rightRowId, rightColId) eq Const(PRODUCTION_BYPASS),
+                ),
+                Iff(
+                    GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId),
+                    GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
+                )
+            )
+        }
+    )
+
 
 fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm? = null): List<Constraints> {
     val cols = input.length
@@ -306,10 +324,10 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm? = 
         SubGroupIdAlwaysZeroForNonProductionRules,
         DiffSubGroupIdIffDiffGroupId,
         NonProductionMeansVerticalRuleIdMatch,
-        BypassConstraint,
         CommonSumConstraints(grammar),
         CommonProdConstraints(grammar),
-    ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) } +
+    ) + BypassConstraints +
+        grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) } +
         grammar.sums.flatMap { sumRuleConstraints(it, rows, cols) } +
         grammar.terms.flatMap { termRuleConstraints(it, rows, cols) } +
             (goal?.let { listOf(GoalConstraint(it)) } ?: emptyList())
