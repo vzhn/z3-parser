@@ -16,60 +16,7 @@ fun main(argv: Array<String>) {
     val grammar = readGrammar(grammarFilePath)
     val input = File(inputFilePath).readText().trim()
     val result = SMTParser(grammar, input, rows).parse()
-    print(result)
-}
-
-fun print(result: SMTParsingResult) {
-    fun asString(list: List<DerivationSymbol>): String {
-        return list.joinToString(" ") { sym ->
-            when (sym) {
-                is NonTerminalDerivation -> "${sym.rule.name}(\'${sym.word}\')"
-                is TerminalDerivation -> "'${sym.rule.ch}'"
-            }
-        }.replace("' '", "")
-    }
-
-    val output = when (result) {
-        SMTParsingResult.NoSolutions -> "no solutions"
-        SMTParsingResult.NotEnoughRows -> "not enough rows"
-        is SMTParsingResult.Solution -> {
-            val leftColumn = mutableListOf<String>()
-            val rightColumn = mutableListOf<String>()
-            var tail = ""
-
-            result.derivation.forEach { step -> when (step) {
-                    is DerivationStep.Middle -> {
-                        val substitutions = step.substitutions.joinToString(" ") {
-                            val name = it.first.name
-
-                            val (first, last) = it.second.first to it.second.last
-                            val range = if (first != last) {
-                                "${first}:${last}"
-                            } else {
-                                "$first"
-                            }
-                            "${name}($range)"
-                        }
-
-                        leftColumn.add(asString(step.input))
-                        rightColumn.add(substitutions)
-                    }
-                    is DerivationStep.Tail -> {
-                        tail = asString(step.input)
-                    }
-                }
-            }
-
-            val maxLength = leftColumn.maxOf(String::length)
-            val lines = leftColumn.zip(rightColumn).map { (left, right) ->
-                "$left ${" ".repeat(maxLength - left.length)} # $right"
-            } + tail
-
-            lines.joinToString("\n")
-        }
-    }
-
-    println(output)
+    result.print()
 }
 
 private fun readGrammar(input: String): Grammar {

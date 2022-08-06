@@ -5,7 +5,10 @@ import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
 import me.vzhilin.gr.report.writeSvg
 import me.vzhilin.gr.rules.DerivationStep
+import me.vzhilin.gr.rules.DerivationSymbol
 import me.vzhilin.gr.rules.Grammar
+import me.vzhilin.gr.rules.NonTerminalDerivation
+import me.vzhilin.gr.rules.TerminalDerivation
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
 import java.io.File
@@ -38,4 +41,56 @@ class SMTParser(
             SMTResult.Unsat -> SMTParsingResult.NoSolutions
         }
     }
+}
+
+fun SMTParsingResult.print() {
+    fun asString(list: List<DerivationSymbol>): String {
+        return list.joinToString(" ") { sym ->
+            when (sym) {
+                is NonTerminalDerivation -> "${sym.rule.name}(\'${sym.word}\')"
+                is TerminalDerivation -> "'${sym.rule.ch}'"
+            }
+        }.replace("' '", "")
+    }
+
+    val output = when (this) {
+        SMTParsingResult.NoSolutions -> "no solutions"
+        SMTParsingResult.NotEnoughRows -> "not enough rows"
+        is SMTParsingResult.Solution -> {
+            val leftColumn = mutableListOf<String>()
+            val rightColumn = mutableListOf<String>()
+            var tail = ""
+
+            this.derivation.forEach { step -> when (step) {
+                is DerivationStep.Middle -> {
+                    val substitutions = step.substitutions.joinToString(" ") {
+                        val name = it.first.name
+
+                        val (first, last) = it.second.first to it.second.last
+                        val range = if (first != last) {
+                            "${first}:${last}"
+                        } else {
+                            "$first"
+                        }
+                        "${name}($range)"
+                    }
+
+                    leftColumn.add(asString(step.input))
+                    rightColumn.add(substitutions)
+                }
+                is DerivationStep.Tail -> {
+                    tail = asString(step.input)
+                }
+            } }
+
+            val maxLength = leftColumn.maxOf(String::length)
+            val lines = leftColumn.zip(rightColumn).map { (left, right) ->
+                "$left ${" ".repeat(maxLength - left.length)} # $right"
+            } + tail
+
+            lines.joinToString("\n")
+        }
+    }
+
+    println(output)
 }
