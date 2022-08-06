@@ -290,6 +290,12 @@ val BypassConstraints: List<Constraints> =
                 RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
             ).label("BypassConstraintRuleId")
         },
+        Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
+            Impl(
+                ProductionTypeId(rowIdBottom, colId) neq Const(PRODUCTION_BYPASS),
+                ProductionTypeId(rowIdUpper, colId) neq Const(PRODUCTION_BYPASS),
+            ).label("BypassConstraintStickToTop")
+        },
         Constraints.Quad {
                 leftRowId: Int, leftColId: Int, rightRowId: Int, rightColId: Int,
                 bottomLeftRowId: Int, bottomLeftColId: Int, bottomRightRowId: Int, bottomRightColId: Int ->
@@ -303,7 +309,7 @@ val BypassConstraints: List<Constraints> =
                     GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId),
                     GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
                 )
-            )
+            ).label("BypassConstraintGroupId")
         }
     )
 
@@ -398,13 +404,6 @@ fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
     }
     return expressions
 }
-
-fun List<Constraints>.validate(cells: Cells, rows: Int, cols: Int): Boolean {
-    val expressions = toExpressions(rows, cols)
-    val failedExp = expressions.firstOrNull { !cells.ev(it) }
-    return failedExp == null
-}
-
 
 private fun Cells.ev(exp: NatExp): Int = when (exp) {
     is CellField -> {

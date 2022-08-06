@@ -30,10 +30,10 @@ fun main(argv: Array<String>) {
     var solutionNumber = 1
     while (true) {
         val result = smtParser.parse()
-        println("== derivation #$solutionNumber ==")
         if (result !is SMTParsingResult.Solution) {
             break
         } else {
+            println("== derivation #$solutionNumber ==")
             result.printDerivation()
             if (debug == true) {
                 println("== cells #$solutionNumber ==")
