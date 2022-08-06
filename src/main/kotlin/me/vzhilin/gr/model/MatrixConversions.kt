@@ -30,7 +30,7 @@ fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
             }
             val substitutions = haveProductions.values.map { vs ->
                 val rule = grammar[getRuleId(rowId + 1, vs.first())]
-                rule to vs.first()..vs.last()
+                rule to getGroupId(rowId, vs.first())..getGroupId(rowId, vs.last())
             }
             DerivationStep.Middle(symbols, substitutions)
         }

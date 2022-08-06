@@ -231,12 +231,4 @@ class ConstraintTests {
             it.setSubGroupId(0, arrayOf(0, 0))
         }.validate(DiffSubGroupIdIffDiffGroupId))
     }
-
-//    @Test
-//    fun `first row should have only single populated groups`() {
-//        assertFalse(Cells(1, 4).also {
-//            it.setGroupId(0, arrayOf(0, 0, 0, 0))
-//            it.setRuleId(0, arrayOf(g['a'].id, g['b'].id, g['x'].id, g['y'].id))
-//        }.validate(FirstRow(g)))
-//    }
 }
