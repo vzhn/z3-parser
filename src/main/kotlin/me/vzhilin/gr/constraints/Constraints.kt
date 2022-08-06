@@ -28,6 +28,7 @@ sealed class Constraints {
     data class Quad(val handler: QuadHandler): Constraints()
     data class Column(val handler: ColumnHandler): Constraints()
     data class Row(val handler: RowHandler): Constraints()
+    data class NotFirst(val handler: RowHandler): Constraints()
     data class Single(val handler: SingleHandler): Constraints()
 }
 
@@ -63,6 +64,12 @@ val AdjGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  right
     val leftGroupId = GroupId(rowId, leftColId)
     val rightGroupId = GroupId(rowId, rightColId)
     Or(leftGroupId eq rightGroupId, Inc(leftGroupId) eq rightGroupId).label("AdjGroupId")
+}
+
+val OneProductionPerRow = Constraints.NotFirst { rowId, cols ->
+    Or(cols.map { colId ->
+        ProductionTypeId(rowId, colId) neq Const(PRODUCTION_BYPASS)
+    })
 }
 
 // left.groupId = right.groupId => right.subGroupId = left.subGroupId + 1 || right.subGroupId = 0
@@ -279,6 +286,7 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints
         BasicRanges(grammar, rows, cols),
         StartFields,
         FirstRow(grammar, input),
+        OneProductionPerRow,
         AdjGroupId,
         AdjSubGroupId,
         AdjCellIndex,
@@ -347,6 +355,12 @@ fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
             is Constraints.FirstRow -> {
                 for (colId in 0 until cols) {
                     expressions.add(c.handler(colId))
+                }
+            }
+
+            is Constraints.NotFirst -> {
+                for (rowId in 1 until rows) {
+                    expressions.add(c.handler(rowId, (0 until cols).toList()))
                 }
             }
         }
