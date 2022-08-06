@@ -3,16 +3,11 @@ package me.vzhilin.gr
 import me.vzhilin.gr.constraints.allConstraints
 import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
-import me.vzhilin.gr.report.writeSvg
-import me.vzhilin.gr.rules.DerivationStep
-import me.vzhilin.gr.rules.DerivationSymbol
-import me.vzhilin.gr.rules.Grammar
-import me.vzhilin.gr.rules.NonTerminalDerivation
-import me.vzhilin.gr.rules.TerminalDerivation
+import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
 import me.vzhilin.gr.snapshot.SolutionSnapshot
-import java.io.File
+import me.vzhilin.gr.snapshot.toExpression
 
 sealed class SMTParsingResult {
     object NoSolutions: SMTParsingResult()
@@ -23,20 +18,20 @@ sealed class SMTParsingResult {
 class SMTParser(
     private val grammar: Grammar,
     private val input: String,
-    private val rows: Int
+    private val rows: Int,
+    private val goal: NonTerm?
 ) {
     private val columns = input.length
-    private val solutionSnapthots = mutableListOf<SolutionSnapshot>()
+    private val solutionSnapshots = mutableListOf<SolutionSnapshot>()
 
     fun parse(): SMTParsingResult {
-        val constraints = allConstraints(grammar, rows, input)
-        val exps = constraints.toExpressions(rows, columns)
+        val constraints = allConstraints(grammar, rows, input, goal)
+        val exps = constraints.toExpressions(rows, columns) + solutionSnapshots.toExpression()
         val smt = SMTRoutine(rows, columns, exps)
         return when (val rs = smt.solve()) {
             is SMTResult.Satisfiable -> {
                 val cells = rs.cells
-                writeSvg(File("report.svg"), input, grammar, cells)
-
+                solutionSnapshots.add(SolutionSnapshot.of(cells))
                 SMTParsingResult.Solution(cells.toDerivation(grammar))
             }
             SMTResult.Unknown -> SMTParsingResult.NoSolutions

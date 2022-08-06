@@ -23,6 +23,7 @@ typealias QuadHandler = (
 sealed class Constraints {
     data class FirstColumn(val handler: FirstColumnHandler): Constraints()
     data class FirstRow(val handler: FirstRowHandler): Constraints()
+    data class LastRow(val handler: RowHandler): Constraints()
     data class HorizontalPair(val handler: HorizontalHandler): Constraints()
     data class VerticalPair(val handler: VerticalHandler): Constraints()
     data class Quad(val handler: QuadHandler): Constraints()
@@ -142,6 +143,15 @@ fun CommonSumConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
     val orExps = g.sums.map(Sum::id).map { ruleId -> RuleId(rowId, colId) eq Const(ruleId) }
 
     Impl(ProductionTypeId(rowId, colId) eq SUM, Or(orExps))
+}
+
+fun GoalConstraint(goal: NonTerm) = Constraints.LastRow { rowId, cols: List<Int> ->
+    And(cols.map { colId ->
+        And(
+            RuleId(rowId, colId) eq Const(goal.id),
+            GroupId(rowId, colId) eq  Zero
+        )
+    })
 }
 
 fun CommonProdConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
@@ -280,7 +290,7 @@ val BypassConstraint =
         ).label("BypassConstraint")
     }
 
-fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints> {
+fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm?): List<Constraints> {
     val cols = input.length
     return listOf(
         BasicRanges(grammar, rows, cols),
@@ -301,7 +311,8 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String): List<Constraints
         CommonProdConstraints(grammar),
     ) + grammar.prods.flatMap { prodRuleConstraints(it, rows, cols) } +
         grammar.sums.flatMap { sumRuleConstraints(it, rows, cols) } +
-        grammar.terms.flatMap { termRuleConstraints(it, rows, cols) }
+        grammar.terms.flatMap { termRuleConstraints(it, rows, cols) } +
+            (goal?.let { listOf(GoalConstraint(it)) } ?: emptyList())
 }
 
 fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
@@ -357,7 +368,9 @@ fun List<Constraints>.toExpressions(rows: Int, cols: Int): List<Exp> {
                     expressions.add(c.handler(colId))
                 }
             }
-
+            is Constraints.LastRow -> {
+                expressions.add(c.handler(rows - 1, (0 until cols).toList()))
+            }
             is Constraints.NotFirst -> {
                 for (rowId in 1 until rows) {
                     expressions.add(c.handler(rowId, (0 until cols).toList()))

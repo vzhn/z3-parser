@@ -6,17 +6,40 @@ import kotlinx.cli.required
 import me.vzhilin.gr.rules.*
 import java.io.File
 
+private val DefaultLimit = 3
+
 fun main(argv: Array<String>) {
     val parser = ArgParser("smt-grammar")
-    val grammarFilePath by parser.option(ArgType.String, shortName = "g", description = "Grammar file").required()
-    val inputFilePath by parser.option(ArgType.String, shortName = "i", description = "Input file").required()
-    val rows by parser.option(ArgType.Int, shortName = "r", description = "Rows").required()
+    val grammarFilePath by parser.option(ArgType.String, shortName = "g", fullName = "grammar", description = "Grammar file").required()
+    val inputFilePath by parser.option(ArgType.String, shortName = "i", fullName = "input", description = "Input file").required()
+    val rows by parser.option(ArgType.Int, shortName = "r", fullName = "rows", description = "Rows").required()
+    val derivationLimit by parser.option(ArgType.Int, shortName = "l", fullName = "limit", description = "derivation limit")
+    val goal by parser.option(ArgType.String, fullName = "goal")
     parser.parse(argv)
+
+    if (derivationLimit == null) {
+        println("Setting default derivation limit = $DefaultLimit")
+        println()
+    }
 
     val grammar = readGrammar(grammarFilePath)
     val input = File(inputFilePath).readText().trim()
-    val result = SMTParser(grammar, input, rows).parse()
-    result.print()
+    val smtParser = SMTParser(grammar, input, rows, goal?.let { grammar[it] as NonTerm })
+    var solutionNumber = 1
+    while (true) {
+        val result = smtParser.parse()
+        println("== derivation #$solutionNumber == ")
+        result.print()
+        println()
+        if (result !is SMTParsingResult.Solution) {
+            break
+        }
+        ++solutionNumber
+        if (solutionNumber > (derivationLimit ?: DefaultLimit)) {
+            println("Limit is reached")
+            break
+        }
+    }
 }
 
 private fun readGrammar(input: String): Grammar {

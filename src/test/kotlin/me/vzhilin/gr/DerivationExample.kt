@@ -70,7 +70,7 @@ class DerivationExample {
     @Test
     fun test() {
         val (g, input, cells) = sampleCells()
-        val constraints = allConstraints(g, cells.rows, input)
+        val constraints = allConstraints(g, cells.rows, input, goal)
         assertTrue(cells.validate(*constraints.toTypedArray()))
     }
 }

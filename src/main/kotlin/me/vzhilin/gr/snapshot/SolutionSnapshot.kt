@@ -1,5 +1,6 @@
 package me.vzhilin.gr.snapshot
 
+import me.vzhilin.gr.constraints.exp.*
 import me.vzhilin.gr.smt.Cells
 
 data class SolutionSnapshot(
@@ -24,3 +25,17 @@ data class SolutionSnapshotCell(
     val groupId: Int,
     val ruleId: Int
 )
+
+fun List<SolutionSnapshot>.toExpression(): Exp {
+    val snapshotsExpressions = this.map { solutionSnapshot ->
+        val expressions = solutionSnapshot.data.flatMap { (pair, cell) ->
+            val (rowId, colId) = pair
+            listOf(
+                GroupId(rowId, colId) eq Const(cell.groupId),
+                RuleId(rowId, colId) eq Const(cell.ruleId)
+            )
+        }
+        Not(And(expressions))
+    }
+    return And(snapshotsExpressions)
+}
