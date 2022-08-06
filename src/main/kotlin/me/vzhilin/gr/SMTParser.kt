@@ -3,11 +3,13 @@ package me.vzhilin.gr
 import me.vzhilin.gr.constraints.allConstraints
 import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
+import me.vzhilin.gr.report.writeSvg
 import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
 import me.vzhilin.gr.snapshot.SolutionSnapshot
 import me.vzhilin.gr.snapshot.toExpression
+import java.io.File
 
 sealed class SMTParsingResult {
     object NoSolutions: SMTParsingResult()
@@ -31,6 +33,7 @@ class SMTParser(
         return when (val rs = smt.solve()) {
             is SMTResult.Satisfiable -> {
                 val cells = rs.cells
+                writeSvg(File("report.svg"), input, grammar, cells)
                 solutionSnapshots.add(SolutionSnapshot.of(cells))
                 SMTParsingResult.Solution(cells.toDerivation(grammar))
             }
@@ -51,7 +54,7 @@ fun SMTParsingResult.print() {
     }
 
     val output = when (this) {
-        SMTParsingResult.NoSolutions -> "no solutions"
+        SMTParsingResult.NoSolutions -> "no solution"
         SMTParsingResult.NotEnoughRows -> "not enough rows"
         is SMTParsingResult.Solution -> {
             val leftColumn = mutableListOf<String>()
