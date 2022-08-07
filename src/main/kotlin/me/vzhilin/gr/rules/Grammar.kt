@@ -53,8 +53,19 @@ data class Prod(
     override val name: String,
     override val components: List<Rule>
 ): NonTerm() {
-    override fun toString() =
-        "$name -> ${components.joinToString(" ", transform = Rule::name)}"
+    override fun toString() = name
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as Prod
+        if (id != other.id) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id
+    }
 }
 
 data class Sum(
@@ -62,8 +73,18 @@ data class Sum(
     override val name: String,
     override val components: List<Rule>
 ): NonTerm() {
-    override fun toString(): String {
-        return "$name -> ${components.joinToString(" | ", transform = Rule::name)}"
+    override fun toString() = name
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as Sum
+        if (id != other.id) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id
     }
 }
 
