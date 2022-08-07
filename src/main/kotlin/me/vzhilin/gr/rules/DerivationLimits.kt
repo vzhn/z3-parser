@@ -68,6 +68,6 @@ class ComputeLimits(private val g: Grammar) {
                 diffs[rule] = diff
             }
         }
-        return options
+        return diffs
     }
 }
