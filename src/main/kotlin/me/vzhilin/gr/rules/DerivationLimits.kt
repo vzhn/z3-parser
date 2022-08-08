@@ -2,8 +2,6 @@ package me.vzhilin.gr.rules
 
 import kotlin.IllegalStateException
 
-// min <= max
-// min > 0
 data class DerivationLimits(val min: Int, val max: Int)
 
 class ComputeLimits(private val g: Grammar) {
@@ -70,11 +68,9 @@ class ComputeLimits(private val g: Grammar) {
                             }
                         }
 
-                        is Sum -> {
-                            addToCurRow(revRule, sizes.min(), sizes.max())
-                        }
+                        is Sum -> addToCurRow(revRule, sizes.min(), sizes.max())
 
-                        is Term -> throw IllegalStateException("not expected: '$revRule'")
+                        is Term -> throw IllegalStateException("not expected here: '$revRule'")
                     }
                 }
             }

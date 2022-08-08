@@ -24,10 +24,6 @@ sealed class DerivationStep {
     ): DerivationStep()
 }
 
-// a b         # V(0)
-// V(a) b      # V(1)
-// V(a) V(b)   # APP(0:1)
-// APP(ab)     # T(0)
 fun Grammar.parseDerivation(input: String): List<DerivationStep> {
     return input.split('\n').map { line ->
         if (line.contains('#')) {

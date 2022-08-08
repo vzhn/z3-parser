@@ -42,19 +42,11 @@ data class ProductionTypeId(
         val PROD = Const(PRODUCTION_PROD)
     }
 }
-data class RuleId(override val rowId: Int,
-                  override val colId: Int): CellField()
+data class RuleId(override val rowId: Int, override val colId: Int): CellField()
+data class GroupId(override val rowId: Int, override val colId: Int): CellField()
+data class SubGroupId(override val rowId: Int, override val colId: Int): CellField()
+data class Index(override val rowId: Int, override val colId: Int): CellField()
 
-data class GroupId(    override val rowId: Int,
-                       override val colId: Int): CellField()
-
-
-data class SubGroupId(    override val rowId: Int,
-                          override val colId: Int): CellField()
-
-
-data class Index(    override val rowId: Int,
-                     override val colId: Int): CellField()
 data class Gt(val lhs: NatExp, val rhs: NatExp): Exp() {
     override fun toString() = "$lhs > $rhs"
 }
