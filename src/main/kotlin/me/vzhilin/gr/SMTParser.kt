@@ -90,26 +90,43 @@ sealed class SMTParsingResult {
 class SMTParser(
     private val grammar: Grammar,
     private val input: String,
-    private val rows: Int,
     private val goal: NonTerm?
 ) {
+    private val limitsComputer = ComputeLimits(grammar)
     private var debug: Boolean = false
     private val columns = input.length
     private val solutionSnapshots = mutableListOf<SolutionSnapshot>()
+    private val limits = if (goal != null) {
+        limitsComputer.computeTreeHeights(goal, input.length)
+    } else {
+        (grammar.sums + grammar.prods).map { goal ->
+            limitsComputer.computeTreeHeights(goal, input.length)
+        }.reduce { left, right ->
+            DerivationLimits(
+                minOf(left.min, right.min),
+                maxOf(left.max, right.max)
+            )
+        }
+    }
+
+    private var rows = limits.min
 
     fun parse(): SMTParsingResult {
-        val constraints = allConstraints(grammar, rows, input, goal)
-        val exps = constraints.toExpressions(rows, columns) + solutionSnapshots.toExpression()
-        val smt = SMTRoutine(rows, columns, exps)
-        return when (val rs = smt.solve()) {
-            is SMTResult.Satisfiable -> {
-                val cells = rs.cells
-                writeSvg(File("report.svg"), input, grammar, cells)
-                solutionSnapshots.add(SolutionSnapshot.of(cells))
-                SMTParsingResult.Solution(input, grammar, cells, cells.toDerivation(grammar))
+        while (rows <= limits.max) {
+            val constraints = allConstraints(grammar, rows, input, goal)
+            val exps = constraints.toExpressions(rows, columns) + solutionSnapshots.toExpression()
+            val smt = SMTRoutine(rows, columns, exps)
+
+            when (val rs = smt.solve()) {
+                is SMTResult.Satisfiable -> {
+                    val cells = rs.cells
+                    solutionSnapshots.add(SolutionSnapshot.of(cells))
+                    return SMTParsingResult.Solution(input, grammar, cells, cells.toDerivation(grammar))
+                }
+                SMTResult.Unknown, SMTResult.Unsat -> ++rows
             }
-            SMTResult.Unknown -> SMTParsingResult.NoSolutions
-            SMTResult.Unsat -> SMTParsingResult.NoSolutions
         }
+
+        return SMTParsingResult.NoSolutions
     }
 }

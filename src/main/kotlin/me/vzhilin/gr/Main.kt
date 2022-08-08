@@ -12,7 +12,6 @@ fun main(argv: Array<String>) {
     val parser = ArgParser("smt-grammar")
     val grammarFilePath by parser.option(ArgType.String, shortName = "g", fullName = "grammar", description = "Grammar file").required()
     val inputFilePath by parser.option(ArgType.String, shortName = "i", fullName = "input", description = "Input file").required()
-    val rows by parser.option(ArgType.Int, shortName = "r", fullName = "rows", description = "Rows").required()
     val derivationLimit by parser.option(ArgType.Int, shortName = "l", fullName = "limit", description = "derivation limit")
     val goal by parser.option(ArgType.String, fullName = "goal")
     val debug by parser.option(ArgType.Boolean, fullName = "debug")
@@ -25,7 +24,7 @@ fun main(argv: Array<String>) {
 
     val grammar = readGrammar(grammarFilePath)
     val input = File(inputFilePath).readText().trim()
-    val smtParser = SMTParser(grammar, input, rows, goal?.let { grammar[it] as NonTerm })
+    val smtParser = SMTParser(grammar, input, goal?.let { grammar[it] as NonTerm })
 
     var solutionNumber = 1
     while (true) {
