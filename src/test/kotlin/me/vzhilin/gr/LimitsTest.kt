@@ -1,6 +1,7 @@
 package me.vzhilin.gr
 
 import me.vzhilin.gr.rules.ComputeLimits
+import me.vzhilin.gr.rules.NonTerm
 import kotlin.test.Test
 
 class LimitsTest {
@@ -8,8 +9,9 @@ class LimitsTest {
     fun test() {
         val g = simpleGrammar()
         val cl = ComputeLimits(g)
-        for (i in 0 until 10) {
-            println(cl.next())
+
+        for (inputLength in 1 until 10) {
+            println("$inputLength: ${cl.computeTreeHeights(g["T"] as NonTerm, inputLength)}")
         }
     }
 }
