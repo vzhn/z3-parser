@@ -28,9 +28,9 @@ sealed class CellField: NatExp() {
     abstract val colId: Int
 }
 
-val PRODUCTION_BYPASS = 0
-val PRODUCTION_SUM = 1
-val PRODUCTION_PROD = 2
+const val PRODUCTION_BYPASS = 0
+const val PRODUCTION_SUM = 1
+const val PRODUCTION_PROD = 2
 
 data class ProductionTypeId(
     override val rowId: Int,
