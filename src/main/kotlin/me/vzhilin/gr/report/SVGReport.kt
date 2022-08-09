@@ -47,12 +47,12 @@ fun buildContainer(
             Container(ContainerType.ROW, "rule #$ruleId: ${rule.name}, gr #$groupId", "", subGroupIdToSubgroupCells.map { (subGroupId, colIds) ->
                 Container(ContainerType.ROW, "sgroup: ${subGroupId}", "", colIds.map { colId ->
                     val centerText = input[colId].toString()
-                    val topText = "#${rowId},${colId}"  + ": " + data.getProductionTypeId(rowId, colId)
+                    val topText = "#${rowId},${colId}"  + ": " + data.setProdTypeId(rowId, colId)
                     val cell = Container(ContainerType.CELL, topText, centerText, emptyList())
                     cell.also {
                         when {
-                            data.getProductionTypeId(rowId, colId) == PRODUCTION_SUM -> it.fill = "lightgreen"
-                            data.getProductionTypeId(rowId, colId) == PRODUCTION_PROD -> it.fill = "lightblue"
+                            data.setProdTypeId(rowId, colId) == PRODUCTION_SUM -> it.fill = "lightgreen"
+                            data.setProdTypeId(rowId, colId) == PRODUCTION_PROD -> it.fill = "lightblue"
                         }
                     }
                     cell

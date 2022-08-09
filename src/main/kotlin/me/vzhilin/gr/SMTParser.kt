@@ -3,14 +3,12 @@ package me.vzhilin.gr
 import me.vzhilin.gr.constraints.allConstraints
 import me.vzhilin.gr.constraints.toExpressions
 import me.vzhilin.gr.model.toDerivation
-import me.vzhilin.gr.report.writeSvg
 import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 import me.vzhilin.gr.smt.SMTResult
 import me.vzhilin.gr.smt.SMTRoutine
 import me.vzhilin.gr.snapshot.SolutionSnapshot
 import me.vzhilin.gr.snapshot.toExpression
-import java.io.File
 
 sealed class SMTParsingResult {
     object NoSolutions: SMTParsingResult()
@@ -37,7 +35,7 @@ sealed class SMTParsingResult {
             }
             for (rowId in revRows) { println("\tsetGroupId($rowId, ${values(rowId, cells::getGroupId)})") }
             for (rowId in revRows) { println("\tsetSubGroupId($rowId, ${values(rowId, cells::getSubGroupId)})") }
-            for (rowId in revRows) { println("\tsetProdTypeId($rowId, ${values(rowId, cells::getProductionTypeId)})") }
+            for (rowId in revRows) { println("\tsetProdTypeId($rowId, ${values(rowId, cells::setProdTypeId)})") }
             for (rowId in revRows) { println("\tsetIndex($rowId, ${values(rowId, cells::getIndex)})") }
             println("}")
         }

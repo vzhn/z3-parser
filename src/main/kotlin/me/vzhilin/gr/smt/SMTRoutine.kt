@@ -39,11 +39,11 @@ data class Cells(
     fun setGroupId(rowId: Int, vararg ids: Int)    = setGroupId(rowId, ids.toTypedArray())
     fun setSubGroupId(rowId: Int, vararg ids: Int) = setSubGroupId(rowId, ids.toTypedArray())
     fun setIndex(rowId: Int, vararg ids: Int)      = setIndex(rowId, ids.toTypedArray())
-    fun setProdTypeId(rowId: Int, vararg ids: Int)   = setProductionTypeId(rowId, ids.toTypedArray())
+    fun setProdTypeId(rowId: Int, vararg ids: Int)   = setProdTypeId(rowId, ids.toTypedArray())
 
     fun getGroupId(rowId: Int, colId: Int): Int    = data[Fields.GroupId]!![rowId to colId]!!
     fun getSubGroupId(rowId: Int, colId: Int): Int = data[Fields.SubGroupId]!![rowId to colId]!!
-    fun getProductionTypeId(rowId: Int, colId: Int): Int = data[Fields.ProductionTypeId]!![rowId to colId]!!
+    fun setProdTypeId(rowId: Int, colId: Int): Int = data[Fields.ProductionTypeId]!![rowId to colId]!!
     fun getRuleId(rowId: Int, colId: Int): Int = data[Fields.RuleId]!![rowId to colId]!!
     fun getIndex(rowId: Int, colId: Int): Int = data[Fields.Index]!![rowId to colId]!!
 
@@ -55,7 +55,7 @@ data class Cells(
         if (indices.size != cols) throw IllegalArgumentException("indices.size != cols")
         (0 until cols).forEach { colId -> setSubGroupId(rowId, colId, indices[colId]) }
     }
-    fun setProductionTypeId(rowId: Int, indices: Array<Int>) {
+    fun setProdTypeId(rowId: Int, indices: Array<Int>) {
         if (indices.size != cols) throw IllegalArgumentException("indices.size != cols")
         (0 until cols).forEach { colId -> setProductionTypeId(rowId, colId, indices[colId]) }
     }

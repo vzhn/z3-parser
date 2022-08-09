@@ -26,7 +26,7 @@ fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
             DerivationStep.Tail(symbols)
         } else {
             val haveProductions = getGroups(rowId + 1).filterValues { values ->
-                values.all { colId -> getProductionTypeId(rowId + 1, colId) != 0 }
+                values.all { colId -> setProdTypeId(rowId + 1, colId) != 0 }
             }
             val substitutions = haveProductions.values.map { vs ->
                 val rule = grammar[getRuleId(rowId + 1, vs.first())]

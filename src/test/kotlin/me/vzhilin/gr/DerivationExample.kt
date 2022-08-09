@@ -142,6 +142,44 @@ class DerivationExample {
         return Triple(grammar, input, cells)
     }
 
+    private fun sampleCells4(): Triple<Grammar, String, Cells> {
+        val input = "yx"
+        val grammar = simpleGrammar()
+        val cells = Cells(5, 2)
+        with (cells) {
+            setRuleId(4, grammar, "T", "T")
+            setRuleId(3, grammar, "APP", "APP")
+            setRuleId(2, grammar, "T", "T")
+            setRuleId(1, grammar, "V", "V")
+            setRuleId(0, grammar, "y", "x")
+
+            setGroupId(4, arrayOf(0, 0))
+            setGroupId(3, arrayOf(0, 0))
+            setGroupId(2, arrayOf(0, 1))
+            setGroupId(1, arrayOf(0, 1))
+            setGroupId(0, arrayOf(0, 1))
+
+            setSubGroupId(4, arrayOf(0, 0))
+            setSubGroupId(3, arrayOf(0, 1))
+            setSubGroupId(2, arrayOf(0, 0))
+            setSubGroupId(1, arrayOf(0, 0))
+            setSubGroupId(0, arrayOf(0, 0))
+
+            setProdTypeId(4, arrayOf(1, 1))
+            setProdTypeId(3, arrayOf(2, 2))
+            setProdTypeId(2, arrayOf(1, 1))
+            setProdTypeId(1, arrayOf(1, 1))
+            setProdTypeId(0, arrayOf(0, 0))
+
+            setIndex(4, arrayOf(0, 1))
+            setIndex(3, arrayOf(0, 1))
+            setIndex(2, arrayOf(0, 0))
+            setIndex(1, arrayOf(0, 0))
+            setIndex(0, arrayOf(0, 0))
+        }
+        return Triple(grammar, input, cells)
+    }
+
     @Test
     fun test1() {
         val (g, input, cells) = sampleCells1()
@@ -161,5 +199,12 @@ class DerivationExample {
         val (g, input, cells) = sampleCells3()
         val constraints = allConstraints(g, cells.rows, input)
         assertFalse(cells.validate(*constraints.toTypedArray()))
+    }
+
+    @Test
+    fun test4() {
+        val (g, input, cells) = sampleCells4()
+        val constraints = allConstraints(g, cells.rows, input)
+        assertTrue(cells.validate(*constraints.toTypedArray()))
     }
 }

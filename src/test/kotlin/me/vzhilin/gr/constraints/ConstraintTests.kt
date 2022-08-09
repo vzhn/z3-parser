@@ -165,44 +165,44 @@ class ConstraintTests {
     fun `same RuleId impl same RuleTypeId`() {
         assert(Cells(1, 4).also {
             it.setRuleId(0, arrayOf(0, 0, 1, 1))
-            it.setProductionTypeId(0, arrayOf(2, 2, 3, 3))
+            it.setProdTypeId(0, arrayOf(2, 2, 3, 3))
         }.validate(SameRuleIdImplSameRuleType))
 
         assert(Cells(1, 4).also {
             it.setRuleId(0, arrayOf(0, 0, 1, 1))
-            it.setProductionTypeId(0, arrayOf(2, 2, 2, 2))
+            it.setProdTypeId(0, arrayOf(2, 2, 2, 2))
         }.validate(SameRuleIdImplSameRuleType))
 
         assertFalse(Cells(1, 4).also {
             it.setRuleId(0, arrayOf(0, 0, 1, 1))
-            it.setProductionTypeId(0, arrayOf(2, 2, 3, 2))
+            it.setProdTypeId(0, arrayOf(2, 2, 3, 2))
         }.validate(SameRuleIdImplSameRuleType))
     }
 
     @Test
     fun `SubGroups could be not-zero only in production rules`() {
         assert(Cells(1, 4).also {
-            it.setProductionTypeId(0, arrayOf(PROD.n, PROD.n, PROD.n, PROD.n))
+            it.setProdTypeId(0, arrayOf(PROD.n, PROD.n, PROD.n, PROD.n))
             it.setSubGroupId(0, arrayOf(0, 1, 2, 3))
         }.validate(SubGroupIdAlwaysZeroForNonProductionRules))
 
         assertTrue(Cells(1, 4).also {
-            it.setProductionTypeId(0, arrayOf(SUM.n, SUM.n, SUM.n, SUM.n))
+            it.setProdTypeId(0, arrayOf(SUM.n, SUM.n, SUM.n, SUM.n))
             it.setSubGroupId(0, arrayOf(0, 0, 0, 0))
         }.validate(SubGroupIdAlwaysZeroForNonProductionRules))
 
         assertTrue(Cells(1, 4).also {
-            it.setProductionTypeId(0, arrayOf(BYPASS.n, BYPASS.n, BYPASS.n, BYPASS.n))
+            it.setProdTypeId(0, arrayOf(BYPASS.n, BYPASS.n, BYPASS.n, BYPASS.n))
             it.setSubGroupId(0, arrayOf(0, 0, 0, 0))
         }.validate(SubGroupIdAlwaysZeroForNonProductionRules))
 
         assertFalse(Cells(1, 4).also {
-            it.setProductionTypeId(0, arrayOf(SUM.n, SUM.n, SUM.n, SUM.n))
+            it.setProdTypeId(0, arrayOf(SUM.n, SUM.n, SUM.n, SUM.n))
             it.setSubGroupId(0, arrayOf(0, 1, 2, 3))
         }.validate(SubGroupIdAlwaysZeroForNonProductionRules))
 
         assertFalse(Cells(1, 4).also {
-            it.setProductionTypeId(0, arrayOf(BYPASS.n, BYPASS.n, BYPASS.n, BYPASS.n))
+            it.setProdTypeId(0, arrayOf(BYPASS.n, BYPASS.n, BYPASS.n, BYPASS.n))
             it.setSubGroupId(0, arrayOf(0, 1, 2, 3))
         }.validate(SubGroupIdAlwaysZeroForNonProductionRules))
     }
@@ -210,8 +210,8 @@ class ConstraintTests {
     @Test
     fun `for product rule different subGroupIds iff different groupIds in bottom cells`() {
         assert(Cells(2, 2).also {
-            it.setProductionTypeId(1, arrayOf(BYPASS.n, BYPASS.n))
-            it.setProductionTypeId(0, arrayOf(PROD.n, PROD.n))
+            it.setProdTypeId(1, arrayOf(BYPASS.n, BYPASS.n))
+            it.setProdTypeId(0, arrayOf(PROD.n, PROD.n))
 
             it.setGroupId(1, arrayOf(0, 0))
             it.setGroupId(0, arrayOf(0, 0))
@@ -221,8 +221,8 @@ class ConstraintTests {
         }.validate(DiffSubGroupIdIffDiffGroupId))
 
         assertFalse(Cells(2, 2).also {
-            it.setProductionTypeId(1, arrayOf(PROD.n, PROD.n))
-            it.setProductionTypeId(0, arrayOf(BYPASS.n, BYPASS.n))
+            it.setProdTypeId(1, arrayOf(PROD.n, PROD.n))
+            it.setProdTypeId(0, arrayOf(BYPASS.n, BYPASS.n))
 
             it.setGroupId(1, arrayOf(1, 1))
             it.setGroupId(0, arrayOf(0, 0))

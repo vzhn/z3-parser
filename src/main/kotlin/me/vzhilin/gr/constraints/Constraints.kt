@@ -73,7 +73,6 @@ val OneProductionPerRow = Constraints.NotFirst { rowId, cols ->
     })
 }
 
-// left.groupId = right.groupId => right.subGroupId = left.subGroupId + 1 || right.subGroupId = 0
 val AdjSubGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int ->
     val leftGroupId = GroupId(rowId, leftColId)
     val rightGroupId = GroupId(rowId, rightColId)
@@ -86,7 +85,6 @@ val AdjSubGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  ri
     ).label("AdjSubGroupId")
 }
 
-// left.groupId = right.groupId => rightIndex = leftIndex + 1
 val AdjCellIndex = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  rightColId: Int  ->
     val leftGroupId = GroupId(rowId, leftColId)
     val rightGroupId = GroupId(rowId, rightColId)
@@ -411,7 +409,7 @@ private fun Cells.ev(exp: NatExp): Int = when (exp) {
             is GroupId -> getGroupId(exp.rowId, exp.colId)
             is Index -> getIndex(exp.rowId, exp.colId)
             is RuleId -> getRuleId(exp.rowId, exp.colId)
-            is ProductionTypeId -> getProductionTypeId(exp.rowId, exp.colId)
+            is ProductionTypeId -> setProdTypeId(exp.rowId, exp.colId)
             is SubGroupId -> getSubGroupId(exp.rowId, exp.colId)
         }
     }
