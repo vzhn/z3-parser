@@ -79,11 +79,11 @@ class ComputeLimits(private val g: Grammar) {
                 val min = sizes.min()
                 val max = sizes.max()
                 if (rule == goal && minHeight == null && max >= inputLength) {
-                    minHeight = treeDepth
+                    minHeight = treeDepth + 1
                 }
 
                 if (rule == goal && min <= inputLength) {
-                    maxHeight = treeDepth
+                    maxHeight = treeDepth + 1
                 }
                 addToAllSymbols(rule, min, max)
             }
