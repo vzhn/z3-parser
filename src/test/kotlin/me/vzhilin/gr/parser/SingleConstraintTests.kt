@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 
 private val g = simpleGrammar()
 
-class ConstraintTests {
+class SingleConstraintTests {
     @Test
     fun `basic range constraints`() {
         assertTrue(

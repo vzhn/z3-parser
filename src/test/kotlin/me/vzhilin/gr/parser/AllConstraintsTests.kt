@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class DerivationExample {
+class AllConstraintsTests {
     private fun sampleCells1(): Triple<Grammar, String, Cells> {
         val g = simpleGrammar()
         val input = "λx.xλy.y"

@@ -12,7 +12,7 @@ fun simpleGrammar(): Grammar {
     )
 }
 
-class GrammarTests() {
+class GrammarTests {
     @Test
     fun test1() {
         val g = Grammar.of(
