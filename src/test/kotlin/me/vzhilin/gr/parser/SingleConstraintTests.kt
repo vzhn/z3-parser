@@ -3,6 +3,7 @@ package me.vzhilin.gr.parser
 import me.vzhilin.gr.parser.ProductionTypeId.Companion.BYPASS
 import me.vzhilin.gr.parser.ProductionTypeId.Companion.PROD
 import me.vzhilin.gr.parser.ProductionTypeId.Companion.SUM
+import me.vzhilin.gr.parser.smt.Cells
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

@@ -1,5 +1,6 @@
 package me.vzhilin.gr.parser
 
+import me.vzhilin.gr.parser.smt.Cells
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

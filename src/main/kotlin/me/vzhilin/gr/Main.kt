@@ -5,6 +5,8 @@ import kotlinx.cli.ArgType
 import kotlinx.cli.required
 import me.vzhilin.gr.parser.Grammar
 import me.vzhilin.gr.parser.NonTerm
+import me.vzhilin.gr.parser.smt.SMTParser
+import me.vzhilin.gr.parser.smt.SMTParsingResult
 import java.io.File
 
 private const val DefaultLimit = 3

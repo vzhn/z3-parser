@@ -1,4 +1,4 @@
-package me.vzhilin.gr
+package me.vzhilin.gr.parser.smt
 
 import me.vzhilin.gr.parser.allConstraints
 import me.vzhilin.gr.parser.toExpressions
@@ -11,9 +11,6 @@ import me.vzhilin.gr.parser.Grammar
 import me.vzhilin.gr.parser.NonTerm
 import me.vzhilin.gr.parser.NonTerminalDerivation
 import me.vzhilin.gr.parser.TerminalDerivation
-import me.vzhilin.gr.parser.Cells
-import me.vzhilin.gr.parser.SMTResult
-import me.vzhilin.gr.parser.SMTRoutine
 import me.vzhilin.gr.parser.SolutionSnapshot
 import me.vzhilin.gr.parser.toExpression
 

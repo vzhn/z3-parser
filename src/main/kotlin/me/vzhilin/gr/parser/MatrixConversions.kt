@@ -7,7 +7,7 @@ import me.vzhilin.gr.parser.Prod
 import me.vzhilin.gr.parser.Sum
 import me.vzhilin.gr.parser.Term
 import me.vzhilin.gr.parser.TerminalDerivation
-import me.vzhilin.gr.parser.Cells
+import me.vzhilin.gr.parser.smt.Cells
 
 fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
     fun word(range: IntRange): String {

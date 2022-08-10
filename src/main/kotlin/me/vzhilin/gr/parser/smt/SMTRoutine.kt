@@ -1,6 +1,30 @@
-package me.vzhilin.gr.parser
+package me.vzhilin.gr.parser.smt
 
 import com.microsoft.z3.*
+import me.vzhilin.gr.parser.And
+import me.vzhilin.gr.parser.Const
+import me.vzhilin.gr.parser.Eq
+import me.vzhilin.gr.parser.Exp
+import me.vzhilin.gr.parser.Ge
+import me.vzhilin.gr.parser.Grammar
+import me.vzhilin.gr.parser.GroupId
+import me.vzhilin.gr.parser.Gt
+import me.vzhilin.gr.parser.Iff
+import me.vzhilin.gr.parser.Impl
+import me.vzhilin.gr.parser.Inc
+import me.vzhilin.gr.parser.Index
+import me.vzhilin.gr.parser.Le
+import me.vzhilin.gr.parser.Lt
+import me.vzhilin.gr.parser.NatExp
+import me.vzhilin.gr.parser.Neq
+import me.vzhilin.gr.parser.Not
+import me.vzhilin.gr.parser.One
+import me.vzhilin.gr.parser.Or
+import me.vzhilin.gr.parser.ProductionTypeId
+import me.vzhilin.gr.parser.Rule
+import me.vzhilin.gr.parser.RuleId
+import me.vzhilin.gr.parser.SubGroupId
+import me.vzhilin.gr.parser.Zero
 
 enum class Fields {
     GroupId,

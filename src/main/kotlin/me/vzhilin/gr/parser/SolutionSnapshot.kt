@@ -1,5 +1,7 @@
 package me.vzhilin.gr.parser
 
+import me.vzhilin.gr.parser.smt.Cells
+
 data class SolutionSnapshot(
     val data: Map<Pair<Int, Int>, SolutionSnapshotCell>
 ) {

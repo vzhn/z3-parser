@@ -2,6 +2,7 @@ package me.vzhilin.gr.parser
 
 import me.vzhilin.gr.parser.ProductionTypeId.Companion.PROD
 import me.vzhilin.gr.parser.ProductionTypeId.Companion.SUM
+import me.vzhilin.gr.parser.smt.Cells
 
 typealias HorizontalHandler = (rowId: Int, leftColId: Int, rightColId: Int) -> Exp
 typealias VerticalHandler = (colId: Int, rowIdUpper: Int, rowIdBottom: Int) -> Exp
