@@ -1,4 +1,4 @@
-package me.vzhilin.gr.parser.exp
+package me.vzhilin.gr.parser
 
 sealed class Exp
 sealed class NatExp

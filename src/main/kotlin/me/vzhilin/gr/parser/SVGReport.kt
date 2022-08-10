@@ -1,9 +1,5 @@
-package me.vzhilin.gr.report
+package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.parser.exp.PRODUCTION_PROD
-import me.vzhilin.gr.parser.exp.PRODUCTION_SUM
-import me.vzhilin.gr.rules.Grammar
-import me.vzhilin.gr.smt.Cells
 import java.io.File
 import java.io.PrintWriter
 

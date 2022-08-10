@@ -1,14 +1,4 @@
-package me.vzhilin.gr.derivation
-
-import me.vzhilin.gr.rules.DerivationStep
-import me.vzhilin.gr.rules.DerivationSymbol
-import me.vzhilin.gr.rules.NonTerm
-import me.vzhilin.gr.rules.NonTerminalDerivation
-import me.vzhilin.gr.rules.Prod
-import me.vzhilin.gr.rules.Rule
-import me.vzhilin.gr.rules.Sum
-import me.vzhilin.gr.rules.Term
-import me.vzhilin.gr.rules.TerminalDerivation
+package me.vzhilin.gr.parser
 
 sealed class DerivationValidationResult
 object Ok: DerivationValidationResult() {
@@ -18,10 +8,10 @@ data class BadReplacement(val lineNumber: Int): DerivationValidationResult()
 data class UnexpectedNonTerm(val nt: NonTerminalDerivation): DerivationValidationResult()
 data class LastProductionShouldHaveOneNt(val n: Int): DerivationValidationResult()
 data class UnexpectedTerm(val lineNumber: Int, val t: TerminalDerivation): DerivationValidationResult()
-data class UnexpectedTermRule(val lineNumber: Int, val t: Term): DerivationValidationResult()
-data class BadProdReplacement(val rule: Prod, val symbols: List<DerivationSymbol>):DerivationValidationResult()
+data class BadProdReplacement(val rule: Prod, val symbols: List<DerivationSymbol>): DerivationValidationResult()
 data class ImproperProdSymbol(val rule: Prod, val expected: Rule, val got: Rule): DerivationValidationResult()
-data class ImproperProdDerivation(val expected: List<DerivationSymbol>, val got: List<DerivationSymbol>):DerivationValidationResult()
+data class ImproperProdDerivation(val expected: List<DerivationSymbol>, val got: List<DerivationSymbol>):
+    DerivationValidationResult()
 data class BadSumDerivationRange(val ir: IntRange): DerivationValidationResult()
 data class SumComponentWasNotFound(val lineNumber: Int, val sum: Sum, val probe: Rule): DerivationValidationResult()
 

@@ -1,7 +1,13 @@
 package me.vzhilin.gr.model
 
-import me.vzhilin.gr.rules.*
-import me.vzhilin.gr.smt.Cells
+import me.vzhilin.gr.parser.DerivationStep
+import me.vzhilin.gr.parser.Grammar
+import me.vzhilin.gr.parser.NonTerminalDerivation
+import me.vzhilin.gr.parser.Prod
+import me.vzhilin.gr.parser.Sum
+import me.vzhilin.gr.parser.Term
+import me.vzhilin.gr.parser.TerminalDerivation
+import me.vzhilin.gr.parser.Cells
 
 fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
     fun word(range: IntRange): String {

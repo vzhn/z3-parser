@@ -1,7 +1,5 @@
 package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.rules.ComputeLimits
-import me.vzhilin.gr.rules.NonTerm
 import kotlin.test.Test
 
 class LimitsTest {

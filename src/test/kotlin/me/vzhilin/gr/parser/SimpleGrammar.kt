@@ -1,8 +1,5 @@
 package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.rules.Grammar
-import me.vzhilin.gr.rules.Prod
-import me.vzhilin.gr.rules.Term
 import kotlin.test.Test
 import kotlin.test.assertIs
 

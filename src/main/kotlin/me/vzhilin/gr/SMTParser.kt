@@ -3,12 +3,19 @@ package me.vzhilin.gr
 import me.vzhilin.gr.parser.allConstraints
 import me.vzhilin.gr.parser.toExpressions
 import me.vzhilin.gr.model.toDerivation
-import me.vzhilin.gr.rules.*
-import me.vzhilin.gr.smt.Cells
-import me.vzhilin.gr.smt.SMTResult
-import me.vzhilin.gr.smt.SMTRoutine
-import me.vzhilin.gr.snapshot.SolutionSnapshot
-import me.vzhilin.gr.snapshot.toExpression
+import me.vzhilin.gr.parser.ComputeLimits
+import me.vzhilin.gr.parser.DerivationLimits
+import me.vzhilin.gr.parser.DerivationStep
+import me.vzhilin.gr.parser.DerivationSymbol
+import me.vzhilin.gr.parser.Grammar
+import me.vzhilin.gr.parser.NonTerm
+import me.vzhilin.gr.parser.NonTerminalDerivation
+import me.vzhilin.gr.parser.TerminalDerivation
+import me.vzhilin.gr.parser.Cells
+import me.vzhilin.gr.parser.SMTResult
+import me.vzhilin.gr.parser.SMTRoutine
+import me.vzhilin.gr.parser.SolutionSnapshot
+import me.vzhilin.gr.parser.toExpression
 
 sealed class SMTParsingResult {
     object NoSolutions: SMTParsingResult()

@@ -1,10 +1,7 @@
 package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.parser.exp.*
-import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.PROD
-import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.SUM
-import me.vzhilin.gr.rules.*
-import me.vzhilin.gr.smt.Cells
+import me.vzhilin.gr.parser.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.parser.ProductionTypeId.Companion.SUM
 
 typealias HorizontalHandler = (rowId: Int, leftColId: Int, rightColId: Int) -> Exp
 typealias VerticalHandler = (colId: Int, rowIdUpper: Int, rowIdBottom: Int) -> Exp
@@ -49,9 +46,11 @@ fun BasicRanges(g: Grammar, rows: Int, cols: Int) = Constraints.Single { rowId, 
 }
 
 val StartFields = Constraints.FirstColumn { rowId, colId ->
-    And(Eq(GroupId(rowId, colId), Zero),
+    And(
+        Eq(GroupId(rowId, colId), Zero),
         Eq(SubGroupId(rowId, colId), Zero),
-        Eq(Index(rowId, colId), Zero)).label("StartFields")
+        Eq(Index(rowId, colId), Zero)
+    ).label("StartFields")
 }
 
 fun FirstRow(g: Grammar, input: String) = Constraints.FirstRow { colId ->
@@ -80,7 +79,8 @@ val AdjSubGroupId = Constraints.HorizontalPair { rowId: Int, leftColId: Int,  ri
     val rightSubGroupId = SubGroupId(rowId, rightColId)
     And(
         Impl(leftGroupId eq rightGroupId,
-            Or(Inc(leftSubGroupId) eq rightSubGroupId, leftSubGroupId eq rightSubGroupId)),
+            Or(Inc(leftSubGroupId) eq rightSubGroupId, leftSubGroupId eq rightSubGroupId)
+        ),
         Impl(leftGroupId neq rightGroupId, Zero eq rightSubGroupId)
     ).label("AdjSubGroupId")
 }
@@ -101,7 +101,8 @@ val DontDivideGroup = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, ro
 }
 
 val NonProductionMeansVerticalRuleIdMatch = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, rowIdBottom: Int ->
-    Impl(ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
+    Impl(
+        ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
         RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
     )
 }
@@ -128,8 +129,10 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad {
         leftRowId, leftColId, rightRowId, rightColId,
         bottomLeftRowId, bottomLeftColId, bottomRightRowId, bottomRightColId ->
     Impl(
-        And(ProductionTypeId(leftRowId, leftColId) eq PROD,
-            GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)),
+        And(
+            ProductionTypeId(leftRowId, leftColId) eq PROD,
+            GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
+        ),
         Iff(
             SubGroupId(leftRowId, leftColId) eq SubGroupId(rightRowId, rightColId),
             GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
@@ -264,11 +267,13 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
         Impl(isSum(upperRowId, colId), Or(orExps))
     }, Constraints.Quad { leftRowId: Int, leftColId: Int, rightRowId: Int, rightColId: Int,
                           bottomLeftRowId: Int, bottomLeftColId: Int, bottomRightRowId: Int, bottomRightColId: Int ->
-        Impl(And(
+        Impl(
+            And(
             isSum(leftRowId, leftColId),
             isSum(rightRowId, rightColId),
             GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
-        ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId))
+        ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
+        )
     })
 }
 

@@ -3,6 +3,8 @@ package me.vzhilin.gr
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
+import me.vzhilin.gr.parser.Grammar
+import me.vzhilin.gr.parser.NonTerm
 import me.vzhilin.gr.rules.*
 import java.io.File
 

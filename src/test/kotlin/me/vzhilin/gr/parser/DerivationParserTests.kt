@@ -1,9 +1,5 @@
 package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.rules.DerivationStep
-import me.vzhilin.gr.rules.NonTerminalDerivation
-import me.vzhilin.gr.rules.TerminalDerivation
-import me.vzhilin.gr.rules.parseDerivation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

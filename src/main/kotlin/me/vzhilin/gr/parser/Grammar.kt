@@ -1,4 +1,4 @@
-package me.vzhilin.gr.rules
+package me.vzhilin.gr.parser
 
 class Grammar(private val rules: List<Rule>) {
     val size get() = rules.size

@@ -1,4 +1,4 @@
-package me.vzhilin.gr.rules
+package me.vzhilin.gr.parser
 
 import kotlin.IllegalStateException
 
