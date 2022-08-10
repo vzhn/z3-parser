@@ -1,6 +1,6 @@
 package me.vzhilin.gr.snapshot
 
-import me.vzhilin.gr.constraints.exp.*
+import me.vzhilin.gr.parser.exp.*
 import me.vzhilin.gr.smt.Cells
 
 data class SolutionSnapshot(

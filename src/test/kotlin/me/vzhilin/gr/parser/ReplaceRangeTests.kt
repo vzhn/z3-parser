@@ -1,4 +1,4 @@
-package me.vzhilin.gr.derivation
+package me.vzhilin.gr.parser
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

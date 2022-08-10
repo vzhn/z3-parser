@@ -1,7 +1,8 @@
-package me.vzhilin.gr.derivation
+package me.vzhilin.gr.parser
 
+import me.vzhilin.gr.derivation.DerivationValidator
+import me.vzhilin.gr.derivation.Ok
 import me.vzhilin.gr.rules.parseDerivation
-import me.vzhilin.gr.simpleGrammar
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

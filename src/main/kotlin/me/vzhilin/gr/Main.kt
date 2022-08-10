@@ -6,7 +6,7 @@ import kotlinx.cli.required
 import me.vzhilin.gr.rules.*
 import java.io.File
 
-private val DefaultLimit = 3
+private const val DefaultLimit = 3
 
 fun main(argv: Array<String>) {
     val parser = ArgParser("smt-grammar")

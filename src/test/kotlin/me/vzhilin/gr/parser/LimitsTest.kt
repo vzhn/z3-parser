@@ -1,4 +1,4 @@
-package me.vzhilin.gr
+package me.vzhilin.gr.parser
 
 import me.vzhilin.gr.rules.ComputeLimits
 import me.vzhilin.gr.rules.NonTerm

@@ -1,7 +1,7 @@
 package me.vzhilin.gr
 
-import me.vzhilin.gr.constraints.allConstraints
-import me.vzhilin.gr.constraints.toExpressions
+import me.vzhilin.gr.parser.allConstraints
+import me.vzhilin.gr.parser.toExpressions
 import me.vzhilin.gr.model.toDerivation
 import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells

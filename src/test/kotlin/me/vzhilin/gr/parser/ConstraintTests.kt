@@ -1,9 +1,8 @@
-package me.vzhilin.gr.constraints
+package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.BYPASS
-import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
-import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
-import me.vzhilin.gr.simpleGrammar
+import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.BYPASS
+import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.SUM
 import me.vzhilin.gr.smt.Cells
 import kotlin.test.Test
 import kotlin.test.assertFalse

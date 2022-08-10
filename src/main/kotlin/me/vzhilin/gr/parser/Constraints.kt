@@ -1,8 +1,8 @@
-package me.vzhilin.gr.constraints
+package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.constraints.exp.*
-import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.PROD
-import me.vzhilin.gr.constraints.exp.ProductionTypeId.Companion.SUM
+import me.vzhilin.gr.parser.exp.*
+import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.PROD
+import me.vzhilin.gr.parser.exp.ProductionTypeId.Companion.SUM
 import me.vzhilin.gr.rules.*
 import me.vzhilin.gr.smt.Cells
 

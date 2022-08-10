@@ -1,7 +1,5 @@
-package me.vzhilin.gr
+package me.vzhilin.gr.parser
 
-import me.vzhilin.gr.constraints.allConstraints
-import me.vzhilin.gr.constraints.validate
 import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.smt.Cells
 import kotlin.test.Test

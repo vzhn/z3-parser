@@ -1,7 +1,7 @@
 package me.vzhilin.gr.smt
 
 import com.microsoft.z3.*
-import me.vzhilin.gr.constraints.exp.*
+import me.vzhilin.gr.parser.exp.*
 import me.vzhilin.gr.rules.Grammar
 import me.vzhilin.gr.rules.Rule
 
