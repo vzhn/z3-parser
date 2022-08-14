@@ -40,7 +40,7 @@ data class Cells(
 ) {
     val rs = 0 until rows
     val cs = 0 until cols
-    private val data: MutableMap<Fields, MutableMap<Pair<Int, Int>, Int>> = mutableMapOf()
+    private val data = mutableMapOf<Fields, MutableMap<Pair<Int, Int>, Int>>()
     init {
         for (field in Fields.values()) {
             val map = mutableMapOf<Pair<Int, Int>, Int>()
