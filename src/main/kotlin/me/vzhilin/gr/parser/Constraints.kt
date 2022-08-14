@@ -273,8 +273,7 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
             isSum(leftRowId, leftColId),
             isSum(rightRowId, rightColId),
             GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
-        ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
-        )
+        ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId))
     })
 }
 
