@@ -165,17 +165,17 @@ class SingleConstraintTests {
         assert(Cells(1, 4).also {
             it.setRuleId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 3, 3))
-        }.validate(SameRuleIdImplSameRuleType))
+        }.validate(SameGroupIdImplSameRuleType))
 
         assert(Cells(1, 4).also {
             it.setRuleId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 2, 2))
-        }.validate(SameRuleIdImplSameRuleType))
+        }.validate(SameGroupIdImplSameRuleType))
 
         assertFalse(Cells(1, 4).also {
             it.setRuleId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 3, 2))
-        }.validate(SameRuleIdImplSameRuleType))
+        }.validate(SameGroupIdImplSameRuleType))
     }
 
     @Test

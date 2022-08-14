@@ -115,11 +115,11 @@ val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { rowId, leftColId, r
     ).label("SameGroupIdImplSameRuleId")
 }
 
-val SameRuleIdImplSameRuleType = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
+val SameGroupIdImplSameRuleType = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
-        RuleId(rowId, leftColId) eq RuleId(rowId, rightColId),
+        GroupId(rowId, leftColId) eq GroupId(rowId, rightColId),
         ProductionTypeId(rowId, leftColId) eq ProductionTypeId(rowId, rightColId)
-    ).label("SameRuleIdImplSameRuleType")
+    ).label("SameGroupIdImplSameRuleType")
 }
 
 val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Single { rowId, colId ->
@@ -330,7 +330,7 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm? = 
         AdjCellIndex,
         DontDivideGroup,
         SameGroupIdImplSameRuleId,
-        SameRuleIdImplSameRuleType,
+        SameGroupIdImplSameRuleType,
         SubGroupIdAlwaysZeroForNonProductionRules,
         DiffSubGroupIdIffDiffGroupId,
         NonProductionMeansVerticalRuleIdMatch,

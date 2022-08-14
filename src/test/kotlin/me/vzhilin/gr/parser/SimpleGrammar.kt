@@ -6,7 +6,7 @@ import kotlin.test.assertIs
 fun simpleGrammar(): Grammar {
     return Grammar.of(
         "T = V | APP | ABST",
-        "V = 'x' | 'y' | 'a' | 'b'" ,
+        "V = 'x' | 'y' | 'a' | 'b' | 'c'" ,
         "APP = T T",
         "ABST = 'λ' V '.' T"
     )
