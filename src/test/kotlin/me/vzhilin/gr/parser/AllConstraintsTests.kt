@@ -16,7 +16,7 @@ class AllConstraintsTests {
             setRuleId(4, g,    "T",    "T",    "T",    "T",    "T",    "T",    "T",    "T")
             setRuleId(3, g, "ABST", "ABST", "ABST", "ABST", "ABST", "ABST", "ABST", "ABST")
             setRuleId(2, g,    "λ",    "V",    ".",    "T",    "λ",    "V",    ".",    "T")
-            setRuleId(1, g,    "λ",    "V",    ".",    "V",    "λ",    "V",    ".",    "V")
+            setRuleId(1, g,    "λ",    "x",    ".",    "V",    "λ",    "y",    ".",    "V")
             setRuleId(0, g,    "λ",    "x",    ".",    "x",    "λ",    "y",    ".",    "y")
 
             setGroupId(6,     0,      0,      0,      0,      0,      0,      0,      0)
@@ -40,8 +40,8 @@ class AllConstraintsTests {
             setProdTypeId(5,    2,      2,      2,      2,      2,      2,      2,      2)
             setProdTypeId(4,    1,      1,      1,      1,      1,      1,      1,      1)
             setProdTypeId(3,    2,      2,      2,      2,      2,      2,      2,      2)
-            setProdTypeId(2,    0,      0,      0,      1,      0,      0,      0,      1)
-            setProdTypeId(1,    0,      1,      0,      1,      0,      1,      0,      1)
+            setProdTypeId(2,    0,      1,      0,      1,      0,      1,      0,      1)
+            setProdTypeId(1,    0,      0,      0,      1,      0,      0,      0,      1)
             setProdTypeId(0,    0,      0,      0,      0,      0,      0,      0,      0)
 
             setIndex(6,       0,      1,      2,      3,      4,      5,      6,      7)
