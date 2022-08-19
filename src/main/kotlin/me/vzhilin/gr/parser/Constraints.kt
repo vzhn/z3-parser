@@ -270,10 +270,11 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
                           bottomLeftRowId: Int, bottomLeftColId: Int, bottomRightRowId: Int, bottomRightColId: Int ->
         Impl(
             And(
-            isSum(leftRowId, leftColId),
-            isSum(rightRowId, rightColId),
-            GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
-        ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId))
+                isSum(leftRowId, leftColId),
+                isSum(rightRowId, rightColId),
+                GroupId(leftRowId, leftColId) eq GroupId(rightRowId, rightColId)
+            ), GroupId(bottomLeftRowId, bottomLeftColId) eq GroupId(bottomRightRowId, bottomRightColId)
+        )
     })
 }
 
