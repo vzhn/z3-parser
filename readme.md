@@ -61,7 +61,7 @@ mvn install:install-file -Dfile=/home/vzhilin/.local/opt/z3-4.8.17-x64-glibc-2.3
 ## How to launch program
 
 ### With IDEA
-There are mine IntelliJ IDEA Settings. Update them according your working environment.
+There are my IntelliJ IDEA Settings. Update them according your working environment.
 ```
 Main class: me.vzhilin.gr.MainKt
 VM Options: -Djava.library.path=/home/vzhilin/.local/opt/z3-z3-4.8.17/build
