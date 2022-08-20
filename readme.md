@@ -1,19 +1,19 @@
 # z3-parser
 This is implementation of context-free grammars parser with z3 SMT solver.
+It is reach and not fast but it is implemented without direct parser programming. Bunch of logical constraints on integer variables and SMT solver doing the main job.
 
 ## Usage
 Specify grammar and input string in separate files (see samples folder). Then invoke program like this:
 
 `z3-parser -g samples/lambda.g -i samples/lambda_02.txt --goal T`
 
-Options:
+Here are program arguments:
 ```
 Options: 
     --grammar, -g -> Grammar file (always required) { String }
     --input, -i -> Input file (always required) { String }
     --limit, -l -> derivation limit { Int }
     --goal { String }
-    --debug 
     --help, -h -> Usage info 
 ```
 
