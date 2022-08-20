@@ -1,6 +1,6 @@
 # z3-parser
 This is implementation of context-free grammars parser with z3 SMT solver.
-It is reach and not fast but it is implemented without direct parser programming. Bunch of logical constraints on integer variables and SMT solver doing the main job.
+Mostly it is proof of concept, it isn't rich and fast, but it is implemented without direct parser programming. Bunch of logical constraints on integer variables and SMT solver doing the job.
 
 ## Usage
 Specify grammar and input string in separate files (see samples folder). Then invoke program like this:
