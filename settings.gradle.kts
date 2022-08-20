@@ -1,3 +1,2 @@
-
-rootProject.name = "smt-grammar2"
+rootProject.name = "z3-parser"
 
