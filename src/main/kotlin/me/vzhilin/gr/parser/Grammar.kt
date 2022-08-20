@@ -6,8 +6,8 @@ class Grammar(private val rules: List<Rule>) {
     val sums get() = rules.filterIsInstance<Sum>()
     val prods get() = rules.filterIsInstance<Prod>()
 
-    operator fun get(ruleId: Int): Rule {
-        return rules.first { it.id == ruleId }
+    operator fun get(symbolId: Int): Rule {
+        return rules.first { it.id == symbolId }
     }
 
     operator fun get(name: String): Rule {
@@ -18,10 +18,6 @@ class Grammar(private val rules: List<Rule>) {
     operator fun get(ch: Char): Term {
         return terms.firstOrNull { it.ch == ch } ?:
             throw IllegalArgumentException("term not found: '$ch'")
-    }
-
-    fun rule(ruleId: Int): Rule {
-        return rules.first { it.id == ruleId }
     }
 
     companion object {
@@ -106,7 +102,7 @@ private fun parse(vararg lines: String): Grammar {
             throw IllegalArgumentException("expected '$rule' one-char term ")
         }
 
-        val ruleId = ruleToId.computeIfAbsent(rule) {
+        val symbolId = ruleToId.computeIfAbsent(rule) {
             val id = ruleToId.size
             idToRule[id] = rule
             if (rule.startsWith("'")) {
@@ -115,10 +111,10 @@ private fun parse(vararg lines: String): Grammar {
             id
         }
 
-        return ruleId
+        return symbolId
     }
 
-    lines.forEach { it ->
+    lines.forEach {
         val (nonTerm, rule) = it.split("=").map(String::trim)
         val id = index(nonTerm)
         if (rule.contains("|")) {

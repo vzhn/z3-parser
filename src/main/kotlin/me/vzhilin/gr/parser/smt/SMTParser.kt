@@ -35,7 +35,7 @@ sealed class SMTParsingResult {
             println("val input = \"$input\"")
             println("with(Cells(${cells.rows}, ${cells.cols})) {")
             for (rowId in revRows) {
-                println("\tsetRuleId($rowId, grammar, ${valuesStr(rowId) { colId -> cells.getRule(grammar, rowId, colId).name }})")
+                println("\tsetSymbolId($rowId, grammar, ${valuesStr(rowId) { colId -> cells.getSymbolId(grammar, rowId, colId).name }})")
             }
             for (rowId in revRows) { println("\tsetGroupId($rowId, ${values(rowId, cells::getGroupId)})") }
             for (rowId in revRows) { println("\tsetSubGroupId($rowId, ${values(rowId, cells::getSubGroupId)})") }

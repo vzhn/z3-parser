@@ -11,8 +11,8 @@ data class SolutionSnapshot(
             for (rowId in 0 until cells.rows) {
                 for (colId in 0 until cells.cols) {
                     val groupId = cells.getGroupId(rowId, colId)
-                    val ruleId = cells.getRuleId(rowId, colId)
-                    result[rowId to colId] = SolutionSnapshotCell(groupId, ruleId)
+                    val symbolId = cells.getSymbolId(rowId, colId)
+                    result[rowId to colId] = SolutionSnapshotCell(groupId, symbolId)
                 }
             }
             return SolutionSnapshot(result)
@@ -22,7 +22,7 @@ data class SolutionSnapshot(
 
 data class SolutionSnapshotCell(
     val groupId: Int,
-    val ruleId: Int
+    val symbolId: Int
 )
 
 fun List<SolutionSnapshot>.toExpression(): Exp {
@@ -31,7 +31,7 @@ fun List<SolutionSnapshot>.toExpression(): Exp {
             val (rowId, colId) = pair
             listOf(
                 GroupId(rowId, colId) eq Const(cell.groupId),
-                RuleId(rowId, colId) eq Const(cell.ruleId)
+                SymbolId(rowId, colId) eq Const(cell.symbolId)
             )
         }
         Not(And(expressions))

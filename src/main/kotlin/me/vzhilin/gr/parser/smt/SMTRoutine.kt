@@ -22,7 +22,7 @@ import me.vzhilin.gr.parser.One
 import me.vzhilin.gr.parser.Or
 import me.vzhilin.gr.parser.ProductionTypeId
 import me.vzhilin.gr.parser.Rule
-import me.vzhilin.gr.parser.RuleId
+import me.vzhilin.gr.parser.SymbolId
 import me.vzhilin.gr.parser.SubGroupId
 import me.vzhilin.gr.parser.Zero
 
@@ -30,7 +30,7 @@ enum class Fields {
     GroupId,
     SubGroupId,
     ProductionTypeId,
-    RuleId,
+    SymbolId,
     Index,
 }
 
@@ -53,9 +53,9 @@ data class Cells(
         }
     }
 
-    fun setRuleId(rowId: Int, g: Grammar, vararg rules: String): Unit = setRuleId(rowId, rules.map { g[it].id }.toTypedArray())
-    fun getRule(g: Grammar, rowId: Int, colId: Int): Rule {
-        return g[getRuleId(rowId, colId)]
+    fun setSymbolId(rowId: Int, g: Grammar, vararg rules: String): Unit = setSymbolId(rowId, rules.map { g[it].id }.toTypedArray())
+    fun getSymbolId(g: Grammar, rowId: Int, colId: Int): Rule {
+        return g[getSymbolId(rowId, colId)]
     }
     fun setGroupId(rowId: Int, vararg ids: Int)    = setGroupId(rowId, ids.toTypedArray())
     fun setSubGroupId(rowId: Int, vararg ids: Int) = setSubGroupId(rowId, ids.toTypedArray())
@@ -65,7 +65,7 @@ data class Cells(
     fun getGroupId(rowId: Int, colId: Int): Int    = data[Fields.GroupId]!![rowId to colId]!!
     fun getSubGroupId(rowId: Int, colId: Int): Int = data[Fields.SubGroupId]!![rowId to colId]!!
     fun setProdTypeId(rowId: Int, colId: Int): Int = data[Fields.ProductionTypeId]!![rowId to colId]!!
-    fun getRuleId(rowId: Int, colId: Int): Int = data[Fields.RuleId]!![rowId to colId]!!
+    fun getSymbolId(rowId: Int, colId: Int): Int = data[Fields.SymbolId]!![rowId to colId]!!
     fun getIndex(rowId: Int, colId: Int): Int = data[Fields.Index]!![rowId to colId]!!
 
     fun setGroupId(rowId: Int, indices: Array<Int>) {
@@ -80,9 +80,9 @@ data class Cells(
         if (indices.size != cols) throw IllegalArgumentException("indices.size != cols")
         (0 until cols).forEach { colId -> setProductionTypeId(rowId, colId, indices[colId]) }
     }
-    fun setRuleId(rowId: Int, indices: Array<Int>) {
+    fun setSymbolId(rowId: Int, indices: Array<Int>) {
         if (indices.size != cols) throw IllegalArgumentException("indices.size != cols")
-        (0 until cols).forEach { colId -> setRuleId(rowId, colId, indices[colId]) }
+        (0 until cols).forEach { colId -> setSymbolId(rowId, colId, indices[colId]) }
     }
     fun setIndex(rowId: Int, indices: Array<Int>) {
         if (indices.size != cols) throw IllegalArgumentException("indices.size != cols")
@@ -98,8 +98,8 @@ data class Cells(
     fun setProductionTypeId(rowId: Int, colId: Int, v: Int) {
         data[Fields.ProductionTypeId]!![rowId to colId] = v
     }
-    fun setRuleId(rowId: Int, colId: Int, v: Int) {
-        data[Fields.RuleId]!![rowId to colId] = v
+    fun setSymbolId(rowId: Int, colId: Int, v: Int) {
+        data[Fields.SymbolId]!![rowId to colId] = v
     }
     fun setIndex(rowId: Int, colId: Int, v: Int) {
         data[Fields.Index]!![rowId to colId] = v
@@ -136,7 +136,7 @@ class SMTRoutine(
     fun getField(n: String): Fields {
         return when (val field = n.substring(0 until n.indexOf('('))) {
             "index" -> Fields.Index
-            "ruleId" -> Fields.RuleId
+            "symbolId" -> Fields.SymbolId
             "groupId" -> Fields.GroupId
             "subGroupId" -> Fields.SubGroupId
             "productionTypeId" -> Fields.ProductionTypeId
@@ -169,7 +169,7 @@ class SMTRoutine(
                 Fields.GroupId -> cells.setGroupId(row, col, v)
                 Fields.SubGroupId -> cells.setSubGroupId(row, col, v)
                 Fields.ProductionTypeId -> cells.setProductionTypeId(row, col, v)
-                Fields.RuleId -> cells.setRuleId(row, col, v)
+                Fields.SymbolId -> cells.setSymbolId(row, col, v)
                 Fields.Index -> cells.setIndex(row, col, v)
             }
         }
@@ -185,7 +185,7 @@ class SMTRoutine(
             is GroupId -> mkConst(e.rowId, e.colId, "groupId")
             is Index -> mkConst(e.rowId, e.colId, "index")
             is ProductionTypeId -> mkConst(e.rowId, e.colId, "productionTypeId")
-            is RuleId -> mkConst(e.rowId, e.colId, "ruleId")
+            is SymbolId -> mkConst(e.rowId, e.colId, "symbolId")
             is SubGroupId -> mkConst(e.rowId, e.colId, "subGroupId")
             is Const -> context.mkInt(e.n)
             is Inc -> context.mkAdd(context.mkInt(1), convNat(e.n))

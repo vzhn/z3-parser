@@ -12,7 +12,7 @@ import me.vzhilin.gr.parser.smt.Cells
 fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
     fun word(range: IntRange): String {
         return range.map { colId ->
-            (grammar[getRuleId(0, colId)] as Term).ch
+            (grammar[getSymbolId(0, colId)] as Term).ch
         }.joinToString("")
     }
     fun getGroups(rowId: Int): Map<Int, List<Int>> {
@@ -20,9 +20,9 @@ fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
     }
     return (0 until rows).map { rowId ->
         val symbols = getGroups(rowId).mapValues { (_, vs) ->
-            val ruleId = getOnly(vs.map { getRuleId(rowId, it) })
+            val symbolId = getOnly(vs.map { getSymbolId(rowId, it) })
             val range = IntRange(vs.first(), vs.last())
-            when (val rule = grammar[ruleId]) {
+            when (val rule = grammar[symbolId]) {
                 is Prod, is Sum -> NonTerminalDerivation(rule, word(range))
                 is Term -> TerminalDerivation(rule)
             }
@@ -35,7 +35,7 @@ fun Cells.toDerivation(grammar: Grammar): List<DerivationStep> {
                 values.all { colId -> setProdTypeId(rowId + 1, colId) != 0 }
             }
             val substitutions = haveProductions.values.map { vs ->
-                val rule = grammar[getRuleId(rowId + 1, vs.first())]
+                val rule = grammar[getSymbolId(rowId + 1, vs.first())]
                 rule to getGroupId(rowId, vs.first())..getGroupId(rowId, vs.last())
             }
             DerivationStep.Middle(symbols, substitutions)

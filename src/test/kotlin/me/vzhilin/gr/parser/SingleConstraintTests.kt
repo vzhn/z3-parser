@@ -143,39 +143,39 @@ class SingleConstraintTests {
     }
 
     @Test
-    fun `same groupId impl same ruleId`() {
+    fun `same groupId impl same symbolId`() {
         assert(Cells(1, 4).also {
             it.setGroupId(0, arrayOf(0, 0, 1, 1))
-            it.setRuleId(0, arrayOf(2, 2, 3, 3))
-        }.validate(SameGroupIdImplSameRuleId))
+            it.setSymbolId(0, arrayOf(2, 2, 3, 3))
+        }.validate(SameGroupIdImplSameSymbolId))
 
         assert(Cells(1, 4).also {
             it.setGroupId(0, arrayOf(0, 0, 1, 1))
-            it.setRuleId(0, arrayOf(2, 2, 2, 2))
-        }.validate(SameGroupIdImplSameRuleId))
+            it.setSymbolId(0, arrayOf(2, 2, 2, 2))
+        }.validate(SameGroupIdImplSameSymbolId))
 
         assertFalse(Cells(1, 4).also {
             it.setGroupId(0, arrayOf(0, 0, 1, 1))
-            it.setRuleId(0, arrayOf(2, 2, 3, 2))
-        }.validate(SameGroupIdImplSameRuleId))
+            it.setSymbolId(0, arrayOf(2, 2, 3, 2))
+        }.validate(SameGroupIdImplSameSymbolId))
     }
 
     @Test
-    fun `same RuleId impl same RuleTypeId`() {
+    fun `same SymbolId impl same Prod Type`() {
         assert(Cells(1, 4).also {
-            it.setRuleId(0, arrayOf(0, 0, 1, 1))
+            it.setSymbolId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 3, 3))
-        }.validate(SameGroupIdImplSameRuleType))
+        }.validate(SameGroupIdImplSameProdType))
 
         assert(Cells(1, 4).also {
-            it.setRuleId(0, arrayOf(0, 0, 1, 1))
+            it.setSymbolId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 2, 2))
-        }.validate(SameGroupIdImplSameRuleType))
+        }.validate(SameGroupIdImplSameProdType))
 
         assertFalse(Cells(1, 4).also {
-            it.setRuleId(0, arrayOf(0, 0, 1, 1))
+            it.setSymbolId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 3, 2))
-        }.validate(SameGroupIdImplSameRuleType))
+        }.validate(SameGroupIdImplSameProdType))
     }
 
     @Test

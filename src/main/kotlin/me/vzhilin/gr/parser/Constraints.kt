@@ -32,13 +32,13 @@ sealed class Constraints {
 }
 
 fun BasicRanges(g: Grammar, rows: Int, cols: Int) = Constraints.Single { rowId, colId ->
-    val ruleId = RuleId(rowId, colId)
+    val symbolId = SymbolId(rowId, colId)
     val productionTypeId = ProductionTypeId(rowId, colId)
     val groupId = GroupId(rowId, colId)
     val subGroupId = SubGroupId(rowId, colId)
     val index = Index(rowId, colId)
     And(
-        ruleId ge Zero, ruleId le Const(g.size - 1),
+        symbolId ge Zero, symbolId le Const(g.size - 1),
         productionTypeId ge Zero, productionTypeId le Const(2),
         groupId ge Zero, groupId le Const(cols - 1),
         subGroupId ge Zero, subGroupId le Const(cols - 1),
@@ -56,7 +56,7 @@ val StartFields = Constraints.FirstColumn { rowId, colId ->
 
 fun FirstRow(g: Grammar, input: String) = Constraints.FirstRow { colId ->
     And(
-        RuleId(0, colId) eq Const(g[input[colId]].id),
+        SymbolId(0, colId) eq Const(g[input[colId]].id),
         GroupId(0, colId) eq Const(colId)
     ).label("FirstRow")
 }
@@ -101,25 +101,25 @@ val DontDivideGroup = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, ro
     Impl(Index(rowIdBottom, colId) neq Zero, Index(rowIdUpper, colId) neq Zero).label("DontDivideGroup")
 }
 
-val NonProductionMeansVerticalRuleIdMatch = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, rowIdBottom: Int ->
+val NonProductionMeansVerticalSymbolMatch = Constraints.VerticalPair { colId: Int, rowIdUpper: Int, rowIdBottom: Int ->
     Impl(
         ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
-        RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
+        SymbolId(rowIdUpper, colId) eq SymbolId(rowIdBottom, colId)
     )
 }
 
-val SameGroupIdImplSameRuleId = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
+val SameGroupIdImplSameSymbolId = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
         GroupId(rowId, leftColId) eq GroupId(rowId, rightColId),
-        RuleId(rowId, leftColId) eq RuleId(rowId, rightColId)
-    ).label("SameGroupIdImplSameRuleId")
+        SymbolId(rowId, leftColId) eq SymbolId(rowId, rightColId)
+    ).label("SameGroupIdImplSameSymbolId")
 }
 
-val SameGroupIdImplSameRuleType = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
+val SameGroupIdImplSameProdType = Constraints.HorizontalPair { rowId, leftColId, rightColId ->
     Impl(
         GroupId(rowId, leftColId) eq GroupId(rowId, rightColId),
         ProductionTypeId(rowId, leftColId) eq ProductionTypeId(rowId, rightColId)
-    ).label("SameGroupIdImplSameRuleType")
+    ).label("SameGroupIdImplSameProdType")
 }
 
 val SubGroupIdAlwaysZeroForNonProductionRules = Constraints.Single { rowId, colId ->
@@ -142,7 +142,7 @@ val DiffSubGroupIdIffDiffGroupId = Constraints.Quad {
 }
 
 fun CommonSumConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
-    val orExps = g.sums.map(Sum::id).map { ruleId -> RuleId(rowId, colId) eq Const(ruleId) }
+    val orExps = g.sums.map(Sum::id).map { symbolId -> SymbolId(rowId, colId) eq Const(symbolId) }
 
     Impl(ProductionTypeId(rowId, colId) eq SUM, Or(orExps))
 }
@@ -150,14 +150,14 @@ fun CommonSumConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
 fun GoalConstraint(goal: NonTerm) = Constraints.LastRow { rowId, cols: List<Int> ->
     And(cols.map { colId ->
         And(
-            RuleId(rowId, colId) eq Const(goal.id),
+            SymbolId(rowId, colId) eq Const(goal.id),
             GroupId(rowId, colId) eq  Zero
         )
     })
 }
 
 fun CommonProdConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
-        val orExps = g.prods.map(Prod::id).map { ruleId -> RuleId(rowId, colId) eq Const(ruleId) }
+        val orExps = g.prods.map(Prod::id).map { symbolId -> SymbolId(rowId, colId) eq Const(symbolId) }
 
     Impl(ProductionTypeId(rowId, colId) eq PROD, Or(orExps))
 }
@@ -165,7 +165,7 @@ fun CommonProdConstraints(g: Grammar) = Constraints.Single { rowId, colId ->
 fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
     val args = r.components.map(Rule::id).map(::Const)
     fun isProd(rowId: Int, colId: Int) = And(
-        RuleId(rowId, colId) eq Const(r.id),
+        SymbolId(rowId, colId) eq Const(r.id),
         ProductionTypeId(rowId, colId) eq PROD
     )
 
@@ -175,8 +175,8 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
 
         val orExp = Or(args.zipWithNext().mapIndexed { index, (lhs, rhs) ->
             And(
-                RuleId(bottomLeftRowId, bottomLeftColId) eq lhs,
-                RuleId(bottomRightRowId, bottomRightColId) eq rhs,
+                SymbolId(bottomLeftRowId, bottomLeftColId) eq lhs,
+                SymbolId(bottomRightRowId, bottomRightColId) eq rhs,
                 SubGroupId(leftRowId, leftColId) eq Const(index),
                 SubGroupId(rightRowId, rightColId) eq Const(index + 1)
             ).label("ProdMiddleCase")
@@ -189,7 +189,7 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
                 And(isProd(rightRowId, rightColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
                 And(
                     SubGroupId(rightRowId, rightColId) eq Zero,
-                    RuleId(bottomRightRowId, bottomRightColId) eq args.first()
+                    SymbolId(bottomRightRowId, bottomRightColId) eq args.first()
                 )
             ).label("ProdStart")
         )
@@ -200,7 +200,7 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
                     isProd(leftRowId, leftColId),
                     And(
                         SubGroupId(leftRowId, leftColId) eq Zero,
-                        RuleId(bottomLeftRowId, bottomLeftColId) eq args.first()
+                        SymbolId(bottomLeftRowId, bottomLeftColId) eq args.first()
                     )
                 ).label("ProdLeftCorner")
             )
@@ -234,7 +234,7 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
                 And(isProd(leftRowId, leftColId), GroupId(leftRowId, leftColId) neq GroupId(rightRowId, rightColId)),
                 And(
                     SubGroupId(leftRowId, leftColId) eq Const(args.lastIndex),
-                    RuleId(bottomLeftRowId, bottomLeftColId) eq args.last()
+                    SymbolId(bottomLeftRowId, bottomLeftColId) eq args.last()
                 )
             ).label("ProdFinish")
         )
@@ -245,7 +245,7 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
                     isProd(rightRowId, rightColId),
                     And(
                         SubGroupId(rightRowId, rightColId) eq Const(args.lastIndex),
-                        RuleId(bottomRightRowId, bottomRightColId) eq args.last()
+                        SymbolId(bottomRightRowId, bottomRightColId) eq args.last()
                     )
                 ).label("ProdRightCorner")
             )
@@ -259,12 +259,12 @@ fun prodRuleConstraints(r: Prod, rows: Int, cols: Int): List<Constraints> {
 fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
     val args = s.components.map(Rule::id).map(::Const)
     fun isSum(rowId: Int, colId: Int) = And(
-        RuleId(rowId, colId) eq Const(s.id),
+        SymbolId(rowId, colId) eq Const(s.id),
         ProductionTypeId(rowId, colId) eq SUM
     )
 
     return listOf(Constraints.VerticalPair { colId, upperRowId, bottomRowId ->
-        val orExps = args.map { optionRuleId -> RuleId(bottomRowId, colId) eq optionRuleId }
+        val orExps = args.map { optionSymbolId -> SymbolId(bottomRowId, colId) eq optionSymbolId }
         Impl(isSum(upperRowId, colId), Or(orExps))
     }, Constraints.Quad { leftRowId: Int, leftColId: Int, rightRowId: Int, rightColId: Int,
                           bottomLeftRowId: Int, bottomLeftColId: Int, bottomRightRowId: Int, bottomRightColId: Int ->
@@ -281,7 +281,7 @@ fun sumRuleConstraints(s: Sum, rows: Int, cols: Int): List<Constraints> {
 fun termRuleConstraints(t: Term, rows: Int, cols: Int): List<Constraints> {
     return listOf(
         Constraints.Single { rowId, colId ->
-            Impl(RuleId(rowId, colId) eq Const(t.id), Index(rowId, colId) eq Zero)
+            Impl(SymbolId(rowId, colId) eq Const(t.id), Index(rowId, colId) eq Zero)
         }
     )
 }
@@ -291,8 +291,8 @@ val BypassConstraints: List<Constraints> =
         Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
             Impl(
                 ProductionTypeId(rowIdUpper, colId) eq Const(PRODUCTION_BYPASS),
-                RuleId(rowIdUpper, colId) eq RuleId(rowIdBottom, colId)
-            ).label("BypassConstraintRuleId")
+                SymbolId(rowIdUpper, colId) eq SymbolId(rowIdBottom, colId)
+            ).label("BypassConstraintSymbolId")
         },
         Constraints.VerticalPair { colId, rowIdUpper, rowIdBottom ->
             Impl(
@@ -329,11 +329,11 @@ fun allConstraints(grammar: Grammar, rows: Int, input: String, goal: NonTerm? = 
         AdjSubGroupId,
         AdjCellIndex,
         DontDivideGroup,
-        SameGroupIdImplSameRuleId,
-        SameGroupIdImplSameRuleType,
+        SameGroupIdImplSameSymbolId,
+        SameGroupIdImplSameProdType,
         SubGroupIdAlwaysZeroForNonProductionRules,
         DiffSubGroupIdIffDiffGroupId,
-        NonProductionMeansVerticalRuleIdMatch,
+        NonProductionMeansVerticalSymbolMatch,
         CommonSumConstraints(grammar),
         CommonProdConstraints(grammar),
     ) + BypassConstraints +
@@ -414,7 +414,7 @@ private fun Cells.ev(exp: NatExp): Int = when (exp) {
         when (exp) {
             is GroupId -> getGroupId(exp.rowId, exp.colId)
             is Index -> getIndex(exp.rowId, exp.colId)
-            is RuleId -> getRuleId(exp.rowId, exp.colId)
+            is SymbolId -> getSymbolId(exp.rowId, exp.colId)
             is ProductionTypeId -> setProdTypeId(exp.rowId, exp.colId)
             is SubGroupId -> getSubGroupId(exp.rowId, exp.colId)
         }
