@@ -18,7 +18,7 @@ class Main {
             val grammarFilePath by parser.option(ArgType.String, shortName = "g", fullName = "grammar", description = "Grammar file").required()
             val inputFilePath by parser.option(ArgType.String, shortName = "i", fullName = "input", description = "Input file").required()
             val derivationLimit by parser.option(ArgType.Int, shortName = "l", fullName = "limit", description = "derivation limit")
-            val goal by parser.option(ArgType.String, fullName = "goal")
+            val goal by parser.option(ArgType.String, fullName = "goal").required()
             val debug by parser.option(ArgType.Boolean, fullName = "debug")
             parser.parse(argv)
 
@@ -29,7 +29,7 @@ class Main {
 
             val grammar = readGrammar(grammarFilePath)
             val input = File(inputFilePath).readText().trim()
-            val smtParser = SMTParser(grammar, input, goal?.let { grammar[it] as NonTerm })
+            val smtParser = SMTParser(grammar, input, goal.let { grammar[it] as NonTerm })
 
             println("== input ==")
             println(input)
