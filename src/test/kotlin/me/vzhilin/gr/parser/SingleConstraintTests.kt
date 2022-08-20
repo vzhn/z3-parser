@@ -163,17 +163,17 @@ class SingleConstraintTests {
     @Test
     fun `same SymbolId impl same Prod Type`() {
         assert(Cells(1, 4).also {
-            it.setSymbolId(0, arrayOf(0, 0, 1, 1))
+            it.setGroupId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 3, 3))
         }.validate(SameGroupIdImplSameProdType))
 
         assert(Cells(1, 4).also {
-            it.setSymbolId(0, arrayOf(0, 0, 1, 1))
+            it.setGroupId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 2, 2))
         }.validate(SameGroupIdImplSameProdType))
 
         assertFalse(Cells(1, 4).also {
-            it.setSymbolId(0, arrayOf(0, 0, 1, 1))
+            it.setGroupId(0, arrayOf(0, 0, 1, 1))
             it.setProdTypeId(0, arrayOf(2, 2, 3, 2))
         }.validate(SameGroupIdImplSameProdType))
     }
