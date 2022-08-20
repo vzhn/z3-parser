@@ -80,5 +80,7 @@ Then change directory and invoke program like this:
 ```
 cd build/install/z3-parser
 
-LD_LIBRARY_PATH=/home/vzhilin/.local/opt/z3-z3-4.8.17/build JAVA_OPTS=-Djava.library.path=/home/vzhilin/.local/opt/z3-z3-4.8.17/build bin/z3-parser -g samples/lambda.g -i samples/lambda_02.txt --goal T
+LD_LIBRARY_PATH=/home/vzhilin/.local/opt/z3-z3-4.8.17/build \
+JAVA_OPTS=-Djava.library.path=/home/vzhilin/.local/opt/z3-z3-4.8.17/build \
+bin/z3-parser -g samples/lambda.g -i samples/lambda_02.txt --goal T
 ```
