@@ -29,6 +29,14 @@ fun main(argv: Array<String>) {
     val input = File(inputFilePath).readText().trim()
     val smtParser = SMTParser(grammar, input, goal?.let { grammar[it] as NonTerm })
 
+    println("== input ==")
+    println(input)
+    println()
+
+    println("== grammar ==")
+    println(File(grammarFilePath).readText().trim())
+    println()
+
     var solutionNumber = 1
     while (true) {
         val result = smtParser.parse()
